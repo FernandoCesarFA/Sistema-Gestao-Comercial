@@ -14,9 +14,15 @@ public class Programa {
 	private static void gestaoComercial() {
 		Locale.setDefault(new Locale("pt", "BR"));
 		
+		Produto produto = new Produto();
+//		produto.setNomeProduto("Xampo");
+//		produto.setPreco(22.50f);
+//		produto.setQuantidadeEstoque(33);
+		
 		DAO<Produto> produtoDao = new DAO<>(Produto.class);
 		
-		Produto produto = produtoDao.buscaPorId(1l);
+		//produtoDao.adiciona(produto);
+		produto = produtoDao.buscaPorId(1l);
 		
 		System.out.println("Opa");
 		
