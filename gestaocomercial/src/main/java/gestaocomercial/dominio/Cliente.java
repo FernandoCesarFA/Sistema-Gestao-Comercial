@@ -47,10 +47,6 @@ public class Cliente implements Serializable {
 		this.cnpj = cnpj;
 	}
 	
-//	public void setCliente() {
-//		setCnpj(cnpj);
-//	}
-	
 	public String getNomeCliente() {
 		return nomeCliente;
 	}
