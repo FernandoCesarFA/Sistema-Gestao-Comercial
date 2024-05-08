@@ -65,8 +65,7 @@ public class Produto implements Serializable{
 		return serialVersionUID;
 	}
 	
-	public void setProduto(Long id, String nomeProduto, Integer quantidadeEstoque, Integer quantidadeVendida, Float preco) {
-		setId(id);
+	public void setProduto(String nomeProduto, Integer quantidadeEstoque, Integer quantidadeVendida, Float preco) {
 		setNomeProduto(nomeProduto);
 		setQuantidadeEstoque(quantidadeEstoque);
 		setQuantidadeVendida(quantidadeVendida);
