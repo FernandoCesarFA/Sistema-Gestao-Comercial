@@ -86,6 +86,7 @@ public class Cliente implements Serializable {
 		this.email = email;
 		this.telefone = telefone;
 		this.endereco = endereco;
+
 	}
 	
 }//Cliente
