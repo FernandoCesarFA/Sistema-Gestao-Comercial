@@ -78,5 +78,14 @@ public class Cliente implements Serializable {
 	public void setEndereco(String endereco) {
 		this.endereco = endereco;
 	}
+
+	public void setCliente(String cpf, String cnpj, String nomeCliente, String email, String telefone, String endereco) {
+		this.cpf = cpf;
+		this.cnpj = cnpj;
+		this.nomeCliente = nomeCliente;
+		this.email = email;
+		this.telefone = telefone;
+		this.endereco = endereco;
+	}
 	
 }//Cliente
