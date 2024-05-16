@@ -80,13 +80,12 @@ public class Cliente implements Serializable {
 	}
 
 	public void setCliente(String cpf, String cnpj, String nomeCliente, String email, String telefone, String endereco) {
-		this.cpf = cpf;
-		this.cnpj = cnpj;
-		this.nomeCliente = nomeCliente;
-		this.email = email;
-		this.telefone = telefone;
-		this.endereco = endereco;
-
+		setCpf(cpf);
+		setCnpj(cnpj);
+		setNomeCliente(nomeCliente);
+		setEmail(email);
+		setTelefone(telefone);
+		setEndereco(endereco);
 	}
 	
 }//Cliente

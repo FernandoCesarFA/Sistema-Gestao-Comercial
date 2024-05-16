@@ -78,5 +78,10 @@ public class Venda {
         this.formaPagamento = formaAux;
     }
 
+	public void setVendas(Cliente cliente, List<Produto> produtoList, FormaPagamento formaPagamento) {
+		setCliente(cliente);
+		setProdutoList(produtoList);
+		setFormaPagamento(formaPagamento);
+	}
 	
 }//Venda
