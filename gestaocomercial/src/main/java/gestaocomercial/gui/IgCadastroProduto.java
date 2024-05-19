@@ -15,7 +15,7 @@ public class IgCadastroProduto extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
-	private JTextField textField;
+	private JTextField nomeTextField;
 	private JTextField quantidateTextFild;
 	private JTextField precoTextField;
 
@@ -23,6 +23,7 @@ public class IgCadastroProduto extends JDialog {
 	public IgCadastroProduto() {
 		setBounds(100, 100, 370, 233);
 		getContentPane().setLayout(null);
+		setResizable(false);
 		contentPanel.setBounds(0, 0, 354, 163);
 		contentPanel.setBackground(new Color(255, 255, 255));
 		getContentPane().add(contentPanel);
@@ -40,10 +41,10 @@ public class IgCadastroProduto extends JDialog {
 		nomeLabel.setBounds(6, 28, 50, 21);
 		panel.add(nomeLabel);
 		
-		textField = new JTextField();
-		textField.setColumns(10);
-		textField.setBounds(82, 24, 247, 28);
-		panel.add(textField);
+		nomeTextField = new JTextField();
+		nomeTextField.setColumns(10);
+		nomeTextField.setBounds(82, 24, 247, 28);
+		panel.add(nomeTextField);
 		
 		JLabel quantidaLabel = new JLabel("Quantidade:");
 		quantidaLabel.setDisplayedMnemonic(KeyEvent.VK_Q);
