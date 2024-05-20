@@ -71,31 +71,31 @@ public class IgCadastroCliente extends JDialog {
 		
 		JLabel emailLabel = new JLabel("Email:");
 		emailLabel.setDisplayedMnemonic(KeyEvent.VK_M);
-		emailLabel.setBounds(16, 91, 47, 16);
+		emailLabel.setBounds(16, 102, 47, 16);
 		mainPanel.add(emailLabel);
 		
 		textField_2 = new JTextField();
 		textField_2.setColumns(10);
-		textField_2.setBounds(84, 85, 215, 28);
+		textField_2.setBounds(84, 96, 215, 28);
 		mainPanel.add(textField_2);
 		
 		JLabel telefoneLabel = new JLabel("Telefone:");
 		telefoneLabel.setDisplayedMnemonic(KeyEvent.VK_T);
-		telefoneLabel.setBounds(16, 124, 60, 16);
+		telefoneLabel.setBounds(16, 140, 60, 16);
 		mainPanel.add(telefoneLabel);
 		
 		telefoneTextField = new JTextField();
 		telefoneTextField.setColumns(10);
-		telefoneTextField.setBounds(84, 118, 215, 28);
+		telefoneTextField.setBounds(84, 134, 215, 28);
 		mainPanel.add(telefoneTextField);
 		
 		JLabel enderecoLabel = new JLabel("Endereço:");
 		enderecoLabel.setDisplayedMnemonic(KeyEvent.VK_E);
-		enderecoLabel.setBounds(16, 159, 85, 16);
+		enderecoLabel.setBounds(16, 173, 85, 16);
 		mainPanel.add(enderecoLabel);
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(84, 158, 215, 63);
+		scrollPane.setBounds(84, 168, 215, 58);
 		mainPanel.add(scrollPane);
 		
 		JTextArea textArea = new JTextArea();

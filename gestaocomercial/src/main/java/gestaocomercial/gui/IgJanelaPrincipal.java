@@ -66,8 +66,15 @@ public class IgJanelaPrincipal extends JFrame {
 		vendaList = vendaDAO.listaTodos();
 		
 		String[] meses = Meses.getAbreviacoes();
+		List<String> nomesList = clienteList.stream().map(Cliente::getNomeCliente).toList();
+		List<String> produtoNomeList = produtoList.stream().map(Produto::getNomeProduto).toList();
 		
-		setTitle("Gestão Comercial™");
+//		nomesList.add("Todos");
+//		produtoNomeList.add("Todos");
+//		
+		String[] clientes = nomesList.toArray(String[]::new);
+		String[] produtos = produtoNomeList.toArray(String[]::new);
+		
 		setIconImage(Toolkit.getDefaultToolkit()
 				.getImage(IgJanelaPrincipal.class.getResource("/gestaocomercial/gui/imagens/comprasIcon.png")));
 
@@ -267,23 +274,27 @@ public class IgJanelaPrincipal extends JFrame {
 		panel.add(comboBoxMes);
 
 		comboBoxCliente = new JComboBox<String>();
+		comboBoxCliente.setModel(new DefaultComboBoxModel<>(clientes));
 		comboBoxCliente.setBounds(195, 6, 118, 21);
 		panel.add(comboBoxCliente);
-		comboBoxCliente.setMaximumRowCount(3);
+		comboBoxCliente.setMaximumRowCount(6);
+		labelCliente.setLabelFor(comboBoxCliente);
 		comboBoxCliente.setBorder(null);
 		comboBoxCliente.setBackground(Color.WHITE);
-
-		comboBoxProduto = new JComboBox<String>();
-		comboBoxProduto.setMaximumRowCount(3);
-		comboBoxProduto.setBorder(null);
-		comboBoxProduto.setBackground(Color.WHITE);
-		comboBoxProduto.setBounds(377, 6, 118, 21);
-		panel.add(comboBoxProduto);
 
 		JLabel produtoLabel = new JLabel("Produto:");
 		produtoLabel.setDisplayedMnemonic(KeyEvent.VK_D);
 		produtoLabel.setBounds(325, 8, 60, 16);
 		panel.add(produtoLabel);
+		
+		comboBoxProduto = new JComboBox<String>();
+		comboBoxProduto.setModel(new DefaultComboBoxModel<>(produtos));
+		comboBoxProduto.setMaximumRowCount(6);
+		produtoLabel.setLabelFor(comboBoxProduto);
+		comboBoxProduto.setBorder(null);
+		comboBoxProduto.setBackground(Color.WHITE);
+		comboBoxProduto.setBounds(377, 6, 118, 21);
+		panel.add(comboBoxProduto);
 
 		buttonClientes = new JButton("Clientes..");
 		buttonClientes.setMnemonic(KeyEvent.VK_T);
@@ -293,7 +304,7 @@ public class IgJanelaPrincipal extends JFrame {
 		centralPanel.add(buttonClientes);
 
 		buttonProdutos = new JButton("Produtos...");
-		buttonProdutos.setMnemonic(KeyEvent.VK_D);
+		buttonProdutos.setMnemonic(KeyEvent.VK_O);
 		buttonProdutos.setFont(new Font("SansSerif", Font.PLAIN, 11));
 		buttonProdutos.setBackground(Color.WHITE);
 		buttonProdutos.setBounds(132, 350, 110, 25);
@@ -391,8 +402,8 @@ public class IgJanelaPrincipal extends JFrame {
 		double vendasTotais = calcularVendasTotais();
 		double vendasSemanal = calcularVendasSemanais(LocalDate.now());
 		double vendasMensais = calcularVendasMensais();
-		double clientesTotais = calcularClientesTotais();
-		double produtosTotais = calcularProdutosTotais();
+		int clientesTotais = calcularClientesTotais();
+		int produtosTotais = calcularProdutosTotais();
 		
 		labelValorVendasDiaria.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasDiarias)));;
 		labelValorVendasTotal.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasTotais)));;
@@ -430,12 +441,11 @@ public class IgJanelaPrincipal extends JFrame {
 				.mapToDouble(Venda::getValorVenda).sum();
 	}
 
-	private double calcularClientesTotais() {
+	private int calcularClientesTotais() {
 		return clienteList.size();
 	}
 
-	private double calcularProdutosTotais() {
+	private int calcularProdutosTotais() {
 		return produtoList.size();
 	}
-
 }
