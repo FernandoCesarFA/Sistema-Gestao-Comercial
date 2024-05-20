@@ -2,8 +2,15 @@ package gestaocomercial.aplicativo;
 
 import java.util.Locale;
 
+import javax.persistence.PersistenceException;
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+
 import gestaocomercial.dao.DAO;
+import gestaocomercial.dominio.Cliente;
 import gestaocomercial.dominio.Produto;
+import gestaocomercial.dominio.Venda;
+import gestaocomercial.gui.IgJanelaPrincipal;
 
 public class Programa {
 	
@@ -12,26 +19,18 @@ public class Programa {
 	}//main()
 
 	private static void gestaoComercial() {
-		Locale.setDefault(new Locale("pt", "BR"));
-		
-		Produto produto = new Produto();
-//		produto.setNomeProduto("Xampo");
-//		produto.setPreco(22.50f);
-//		produto.setQuantidadeEstoque(33);
-		
-		DAO<Produto> produtoDao = new DAO<>(Produto.class);
-		
-		//produtoDao.adiciona(produto);
-		produto = produtoDao.buscaPorId(1l);
-		
-		System.out.println("Opa");
-		
-		System.out.println(produto.getId() + " " + produto.getNomeProduto() + " " + produto.getPreco());
-		
 		try {
-			produtoDao.close();
-		} catch (Exception e) {
+			Locale.setDefault(new Locale("pt", "BR"));
+			UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+			new IgJanelaPrincipal(new DAO<>(Cliente.class), new DAO<> (Produto.class), new DAO<> (Venda.class));
+		}
+		catch (PersistenceException e) {
+			JOptionPane.showMessageDialog(null, "Erro ao se conectar ao banco de dados", "Error", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Erro inesperado", "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}//gestaoComercial()
 }//Programa()

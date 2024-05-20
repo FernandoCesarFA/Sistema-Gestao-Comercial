@@ -1,5 +1,7 @@
 package gestaocomercial.dominio;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -22,28 +24,39 @@ public class Venda {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
 	@ManyToOne
-	Cliente cliente;
+	private Cliente cliente;
 	@OneToMany
-	List<Produto> produtoList;
-	FormaPagamento formaPagamento;
+	private List<Produto> produtoList = new ArrayList<Produto>();
+	private FormaPagamento formaPagamento;
+	private LocalDate dataVenda;
+	private Double valorVenda;
 	
 	public Long getId() {
 		return id;
 	}
+	
 	public void setId(Long id) {
 		this.id = id;
 	}
+	
 	public Cliente getCliente() {
 		return cliente;
 	}
+	
 	public void setCliente(Cliente cliente) {
 		this.cliente = cliente;
 	}
+	
 	public List<Produto> getProdutoList() {
 		return produtoList;
 	}
+	
 	public void setProdutoList(List<Produto> produtoList) {
 		this.produtoList = produtoList;
+	}
+	
+	public void adicionarProduto(Produto produto) {
+		produtoList.add(produto);
 	}
 	
 	 /**
@@ -77,11 +90,37 @@ public class Venda {
         }
         this.formaPagamento = formaAux;
     }
+    
+	public LocalDate getDataVenda() {
+		return dataVenda;
+	}
+	
+	public void setDataVenda(LocalDate dataVenda) {
+		this.dataVenda = dataVenda;
+	}
+	
+	public double getValorVenda() {
+		return valorVenda;
+	}
+
+	public void setValorVenda(Double valorVenda) {
+		this.valorVenda = valorVenda;
+	}
 
 	public void setVendas(Cliente cliente, List<Produto> produtoList, FormaPagamento formaPagamento) {
 		setCliente(cliente);
 		setProdutoList(produtoList);
 		setFormaPagamento(formaPagamento);
 	}
+	
+	 /**
+     * Obtém o més do pagamento.
+     *
+     * @return o mes do pagamento
+     */
+    public String getMesVenda() {
+        int mes = dataVenda.getMonthValue();
+        return String.format("%,02d", mes);
+    }
 	
 }//Venda

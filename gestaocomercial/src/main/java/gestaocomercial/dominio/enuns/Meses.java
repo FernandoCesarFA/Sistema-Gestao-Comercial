@@ -39,15 +39,18 @@ public enum Meses {
 	}
 	
 	public static String[] getAbreviacoes() {
-        Meses[] meses = Meses.values();
-        String[] abreviacoes = new String[meses.length];
+	    Meses[] meses = Meses.values();
+	    String[] abreviacoes = new String[meses.length + 1]; 
 
-        for (int i = 0; i < meses.length; i++) {
-            abreviacoes[i] = meses[i].getAbreviacao();
-        }
+	    for (int i = 0; i < meses.length; i++) {
+	        abreviacoes[i] = meses[i].getAbreviacao();
+	    }
 
-        return abreviacoes;
-    }
+	    abreviacoes[meses.length] = "todos"; 
+
+	    return abreviacoes;
+	}
+
 	
 	/**
 	 * Retorna o valor correspondente a uma abreviação do enum Meses.
