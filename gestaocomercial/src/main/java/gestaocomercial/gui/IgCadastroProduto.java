@@ -1,15 +1,21 @@
 package gestaocomercial.gui;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.KeyEvent;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+
+import gestaocomercial.dao.DAO;
+import gestaocomercial.dominio.Produto;
 
 public class IgCadastroProduto extends JDialog {
 
@@ -18,9 +24,11 @@ public class IgCadastroProduto extends JDialog {
 	private JTextField nomeTextField;
 	private JTextField quantidateTextFild;
 	private JTextField precoTextField;
-
+	private DAO<Produto> produtoDao;
 	
-	public IgCadastroProduto() {
+	public IgCadastroProduto(Component janelaPai, DAO<Produto> produtoDao, List<Produto> produtoList) {
+		this.produtoDao = produtoDao;
+		
 		setBounds(100, 100, 370, 233);
 		getContentPane().setLayout(null);
 		setResizable(false);
@@ -84,5 +92,53 @@ public class IgCadastroProduto extends JDialog {
 		cancelarButton.setActionCommand("Cancel");
 		cancelarButton.setBounds(264, 6, 84, 28);
 		buttonPanel.add(cancelarButton);
+		
+		// Fecha a janela quando o botão cancelar for precionado.
+		cancelarButton.addActionListener((e) -> dispose());
+		
+		// Cadastra o produto
+		cadastrarButton.addActionListener((e) -> cadastrarProduto(produtoList));
+		
+		setModal(true);
+		setResizable(false);
+		setLocationRelativeTo(janelaPai);
+		setVisible(true);
 	}
+
+	private void cadastrarProduto(List<Produto> produtoList) {
+		var mensagemDeErro = new StringBuilder();
+		Produto produto = new Produto();
+		
+		try {
+			if (!produtoList.stream().filter((p) -> p.getNomeProduto().equals(nomeTextField.getText())).toList().isEmpty()) {
+				throw new IllegalArgumentException("Produto Já Cadastrado");
+			}
+			produto.setNomeProduto(nomeTextField.getText());
+		}
+		catch (Exception e) {
+			mensagemDeErro.append(e.getMessage()).append("\n");
+		}
+		try {
+			produto.setQuantidadeEstoque(Integer.parseInt(quantidateTextFild.getText()));
+		}
+		catch (Exception e) {
+			mensagemDeErro.append(e.getMessage()).append("\n");
+		}
+		try {
+			produto.setPreco(Float.parseFloat(precoTextField.getText()));
+		}
+		catch (Exception e) {
+			mensagemDeErro.append(e.getMessage()).append("\n");
+		}
+		
+		if (mensagemDeErro.isEmpty()) {
+			produtoDao.adiciona(produto);
+			produtoList.add(produto);
+			
+			dispose();
+		}
+		else {
+			JOptionPane.showMessageDialog(this, mensagemDeErro.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}//cadastrarProduto()
 }

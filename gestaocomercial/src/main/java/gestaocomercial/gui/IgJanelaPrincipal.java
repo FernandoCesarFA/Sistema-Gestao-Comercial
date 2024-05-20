@@ -25,9 +25,13 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableModel;
 
 import gestaocomercial.dao.DAO;
 import gestaocomercial.dominio.Cliente;
@@ -59,7 +63,8 @@ public class IgJanelaPrincipal extends JFrame {
 	private JButton buttonProdutos;
 	private JButton buttonRelatorio;
 	private JButton buttonVenda;
-
+	private JTable vendasTabel;
+	
 	public IgJanelaPrincipal(DAO<Cliente> clienteDAO, DAO<Produto> produtoDAO, DAO<Venda> vendaDAO) {
 		clienteList = clienteDAO.listaTodos();
 		produtoList = produtoDAO.listaTodos();
@@ -311,6 +316,15 @@ public class IgJanelaPrincipal extends JFrame {
 		centralPanel.add(buttonProdutos);
 		setVisible(true);
 		
+		vendasTabel = criarTabela();
+		tabelaPanel.add(vendasTabel);
+		tabelaPanel.add(criarTabelaVendas(vendaList));
+		
+		//Abre a tela de cadastro de Clientes
+		buttonCadastrarCliente.addActionListener((e) -> new IgCadastroCliente(this, clienteDAO, clienteList));
+		
+		//Abre a tela de cadastro de Produtos
+		buttonCadastrarProduto.addActionListener((e) -> new IgCadastroProduto(this, produtoDAO, produtoList));
 		
 		//Atualiza os componentes de acordo com o mes selecionado no JComboBox.
 		comboBoxMes.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
@@ -360,8 +374,6 @@ public class IgJanelaPrincipal extends JFrame {
 			}
 			atualizarComponentes();
 	}
-	
-
 	
 	private void atualizarComponentes() {
 	    atualizarEstadoBotaoClientes();
@@ -448,4 +460,86 @@ public class IgJanelaPrincipal extends JFrame {
 	private int calcularProdutosTotais() {
 		return produtoList.size();
 	}
+	
+
+    private JTable criarTabela() {
+        // Criar a tabela com o modelo criado
+        JTable tabela = new JTable(new DefaultTableModel(
+                new Object[][]{},
+                new String[]{
+                        "Cliente", "Produto", "Quantidade", "Pagamento", "Data da Venda", "Valor"
+                }
+        )) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                // Todas as células não são editáveis
+                return false;
+            }
+        };
+
+        // Impedir reordenação das colunas
+        tabela.getTableHeader().setReorderingAllowed(false);
+
+        // Configurar o estilo da tabela
+        tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tabela.setFillsViewportHeight(true);
+
+        // Definir cor de fundo da tabela
+        tabela.setBackground(Color.WHITE);
+
+        // Remover sombra da linha quando uma célula é selecionada
+        tabela.setRowSelectionAllowed(true);
+
+        // Definir cor de fundo do cabeçalho da tabela
+        tabela.getTableHeader().setBackground(Color.WHITE);
+
+        // Adicionar bordas entre as colunas e linhas da tabela
+        tabela.setShowGrid(true);
+        tabela.setGridColor(Color.LIGHT_GRAY);
+
+        // Ajustar a largura das colunas conforme necessário
+        tabela.getColumnModel().getColumn(0).setPreferredWidth(100);
+        tabela.getColumnModel().getColumn(1).setPreferredWidth(200);
+        tabela.getColumnModel().getColumn(2).setPreferredWidth(70);
+        tabela.getColumnModel().getColumn(3).setPreferredWidth(100);
+        tabela.getColumnModel().getColumn(4).setPreferredWidth(100);
+        tabela.getColumnModel().getColumn(5).setPreferredWidth(70);
+
+        return tabela;
+    }
+
+    public JScrollPane criarTabelaVendas(List<Venda> vendaList) {
+        JTable tabelaVendas = criarTabela();
+        JScrollPane scrollPane = atualizarTabela(tabelaVendas, vendaList);
+        return scrollPane;
+    }
+
+    private JScrollPane atualizarTabela(JTable tabelaVendas, List<Venda> vendaList) {
+        DefaultTableModel model = (DefaultTableModel) tabelaVendas.getModel();
+
+        // Limpar dados existentes da tabela
+        model.setRowCount(0);
+
+        for (Venda venda : vendaList) {
+            for (Produto produto : venda.getProdutoList()) {
+                Object[] rowData = {
+                        venda.getCliente().getNomeCliente(),
+                        produto.getNomeProduto(),
+                        produto.getQuantidadeVendida(),
+                        venda.getFormaPagamento().toString(),
+                        venda.getDataVenda(), //format(Utilitario.DIA_MES_ANO_FORMATTER),
+                        venda.getValorVenda()
+                };
+                model.addRow(rowData);
+            }
+        }
+
+        // Criar um JScrollPane para permitir a rolagem da tabela
+        JScrollPane scrollPane = new JScrollPane(tabelaVendas);
+
+        return scrollPane;
+    }
+
 }

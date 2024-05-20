@@ -1,25 +1,25 @@
 package gestaocomercial.gui;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.event.KeyEvent;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import java.awt.Color;
-import javax.swing.border.TitledBorder;
-import javax.swing.border.LineBorder;
 import javax.swing.JLabel;
-import java.awt.event.KeyEvent;
-import javax.swing.JTextField;
-import javax.swing.JComboBox;
-import javax.swing.JRadioButton;
-import javax.swing.JTextPane;
-import javax.swing.JEditorPane;
-import javax.swing.JScrollBar;
-import javax.swing.JTextArea;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
+
+import gestaocomercial.dao.DAO;
+import gestaocomercial.dominio.Cliente;
 
 public class IgCadastroCliente extends JDialog {
 
@@ -27,14 +27,18 @@ public class IgCadastroCliente extends JDialog {
 	private final JPanel contentPanel = new JPanel();
 	private JTextField cpfTextField;
 	private JTextField nomeTextField;
-	private JTextField textField_2;
+	private JTextField emailTextField;
 	private JTextField telefoneTextField;
+	private JTextArea enderecoTextArea;
+	private DAO<Cliente> clienteDao;
 
 
 	/**
 	 * Create the dialog.
 	 */
-	public IgCadastroCliente() {
+	public IgCadastroCliente(Component janelaPai, DAO<Cliente> clienteDao, List<Cliente> ClienteList) {
+		this.clienteDao = clienteDao;
+		
 		setBounds(100, 100, 339, 317);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBackground(new Color(255, 255, 255));
@@ -74,10 +78,10 @@ public class IgCadastroCliente extends JDialog {
 		emailLabel.setBounds(16, 102, 47, 16);
 		mainPanel.add(emailLabel);
 		
-		textField_2 = new JTextField();
-		textField_2.setColumns(10);
-		textField_2.setBounds(84, 96, 215, 28);
-		mainPanel.add(textField_2);
+		emailTextField = new JTextField();
+		emailTextField.setColumns(10);
+		emailTextField.setBounds(84, 96, 215, 28);
+		mainPanel.add(emailTextField);
 		
 		JLabel telefoneLabel = new JLabel("Telefone:");
 		telefoneLabel.setDisplayedMnemonic(KeyEvent.VK_T);
@@ -98,10 +102,10 @@ public class IgCadastroCliente extends JDialog {
 		scrollPane.setBounds(84, 168, 215, 58);
 		mainPanel.add(scrollPane);
 		
-		JTextArea textArea = new JTextArea();
-		textArea.setWrapStyleWord(true);
-		textArea.setLineWrap(true);
-		scrollPane.setViewportView(textArea);
+		enderecoTextArea = new JTextArea();
+		enderecoTextArea.setWrapStyleWord(true);
+		enderecoTextArea.setLineWrap(true);
+		scrollPane.setViewportView(enderecoTextArea);
 		
 		JPanel panel = new JPanel();
 		panel.setLayout(null);
@@ -121,5 +125,65 @@ public class IgCadastroCliente extends JDialog {
 		cancelarButton.setActionCommand("Cancel");
 		cancelarButton.setBounds(227, 0, 90, 28);
 		panel.add(cancelarButton);
+		
+		// Fecha a janela quando o botão cancelar for precionado.
+		cancelarButton.addActionListener((e) -> dispose());
+
+		// Cadastra
+		cadastrarButton.addActionListener((e) -> cadastrarCliente(ClienteList));
+		
+		setModal(true);
+		setResizable(false);
+		setLocationRelativeTo(janelaPai);
+		setVisible(true);
 	}
+	
+	private void cadastrarCliente(List<Cliente> clienteList) {
+		var mensagemDeErro = new StringBuilder();
+		Cliente cliente = new Cliente();
+		
+		try {
+			if (!clienteList.stream().filter((c) -> c.getCpf().equals(cpfTextField.getText())).toList().isEmpty()) {
+				throw new IllegalArgumentException("CPF Já Cadastrado");
+			}
+			cliente.setCpf(cpfTextField.getText());
+		}
+		catch (Exception e) {
+			mensagemDeErro.append(e.getMessage()).append("\n");
+		}
+		try {
+			cliente.setNomeCliente(nomeTextField.getText());
+		}
+		catch (Exception e) {
+			mensagemDeErro.append(e.getMessage()).append("\n");
+		}
+		try {
+			cliente.setEmail(emailTextField.getText());
+		}
+		catch (Exception e) {
+			mensagemDeErro.append(e.getMessage()).append("\n");
+		}
+		try {
+			cliente.setTelefone(telefoneTextField.getText());
+		}
+		catch (Exception e) {
+			mensagemDeErro.append(e.getMessage()).append("\n");
+		}
+		try {
+			cliente.setEndereco(enderecoTextArea.getText());
+		}
+		catch (Exception e) {
+			mensagemDeErro.append(e.getMessage()).append("\n");
+		}
+		
+		if (mensagemDeErro.isEmpty()) {
+			clienteDao.adiciona(cliente);
+			clienteList.add(cliente);
+			
+			dispose();
+		}
+		else {
+			JOptionPane.showMessageDialog(this, mensagemDeErro.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}//cadastrarCliente()
 }
