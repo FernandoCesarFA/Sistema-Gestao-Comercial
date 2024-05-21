@@ -72,4 +72,8 @@ public class Produto implements Serializable{
 		setPreco(preco);
 	}
 	
+	public boolean isProduto(String nomeProduto) {
+		return this.nomeProduto.equals(nomeProduto) ? true : false;
+	}
+	
 }//Produto

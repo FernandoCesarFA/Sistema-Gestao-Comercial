@@ -15,7 +15,6 @@ import java.awt.event.WindowEvent;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -71,6 +70,8 @@ public class IgJanelaPrincipal extends JFrame {
 	private JTable vendasTabel;
 	private IgCadastroCliente cadastroCliente = null;
 	private IgCadastroProduto cadastroProduto = null;
+	private JPanel tabelaPanel;
+	private JPanel graficoPanel;
 
 	public IgJanelaPrincipal(DAO<Cliente> clienteDAO, DAO<Produto> produtoDAO, DAO<Venda> vendaDAO) {
 		clienteList = clienteDAO.listaTodos();
@@ -247,12 +248,12 @@ public class IgJanelaPrincipal extends JFrame {
 		centralPanel.setBounds(10, 64, 1178, 383);
 		getContentPane().add(centralPanel);
 
-		JPanel graficoPanel = new JPanel();
+		graficoPanel = new JPanel();
 		graficoPanel.setBounds(747, 42, 424, 304);
 		centralPanel.add(graficoPanel);
 		graficoPanel.setLayout(new BorderLayout(0, 0));
 
-		JPanel tabelaPanel = new JPanel();
+		tabelaPanel = new JPanel();
 		tabelaPanel.setBackground(Color.WHITE);
 		tabelaPanel.setBounds(16, 55, 719, 288);
 		centralPanel.add(tabelaPanel);
@@ -342,6 +343,7 @@ public class IgJanelaPrincipal extends JFrame {
 				public void windowClosed(WindowEvent e) {
 					// Este método será chamado quando a janela for fechada
 					atualizarComboBoxClientes();
+					atualizarComponentes();
 				}
 			});
 		});
@@ -356,6 +358,7 @@ public class IgJanelaPrincipal extends JFrame {
 				public void windowClosed(WindowEvent e) {
 					// Este método será chamado quando a janela for fechada
 					atualizarComboBoxProduto();
+					atualizarComponentes();
 				}
 			});
 		});
@@ -411,7 +414,16 @@ public class IgJanelaPrincipal extends JFrame {
 				.setModel(new DefaultComboBoxModel<>(convertListToArrayWithTodos(obterNomesProdutos(produtoList))));
 		comboBoxProduto.setSelectedIndex(produtoList.size());
 	}
-
+	
+	private void graficoEmBarras() {
+		if (graficoPanel.getComponentCount() > 0) {
+			graficoPanel.remove(0);
+		}
+		graficoPanel.add(IgGraficoBarras.gerarGraficoBarras(vendaList, ""));
+		tabelaPanel.revalidate();
+		tabelaPanel.repaint();
+	}//graficoEmBarras()
+	
 	private static String[] convertListToArrayWithTodos(List<String> list) {
 		// Criar um array com uma posição extra
 		String[] array = list.toArray(new String[0]);
@@ -462,6 +474,34 @@ public class IgJanelaPrincipal extends JFrame {
 		atualizarEstadoBotoesVendaERelatorio();
 		atualizarLabels();
 		atualizarTabela(vendasTabel, vendaList);
+		
+		List<Venda> vendaFiltradaList = vendaList;
+		
+		if (!comboBoxMes.getSelectedItem().equals("Todos")) {
+			vendaFiltradaList = vendaFiltradaList.stream().filter((v) -> v.getMesVenda().equals(comboBoxMes.getSelectedItem())).collect(Collectors.toList());
+		}
+		
+		if (!comboBoxCliente.getSelectedItem().equals("Todos")) {
+			vendaFiltradaList = vendaFiltradaList.stream().filter((v) -> v.getCliente().getNomeCliente().equals(comboBoxCliente.getSelectedItem())).collect(Collectors.toList());
+		}
+		
+		if (!comboBoxProduto.getSelectedItem().equals("Todos")) {
+		    vendaFiltradaList = vendaFiltradaList.stream()
+		        .filter(v -> v.getProdutoList().stream().anyMatch(p -> p.isProduto(comboBoxProduto.getSelectedItem().toString())))
+		        .collect(Collectors.toList());
+		}
+		
+		graficoEmBarras();
+		
+		// Remover o JScrollPane antigo da tabelaPanel
+		tabelaPanel.remove(0);
+
+		// Adicionar o novo JScrollPane à tabelaPanel
+		tabelaPanel.add(atualizarTabela(vendasTabel, vendaFiltradaList));
+				
+		// Atualizar a interface
+		tabelaPanel.revalidate();
+		tabelaPanel.repaint();
 	}
 
 	private void atualizarEstadoBotaoClientes() {
