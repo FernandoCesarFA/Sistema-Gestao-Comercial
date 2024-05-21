@@ -112,8 +112,8 @@ public class Venda implements Serializable {
 		this.dataVenda = dataVenda;
 	}
 	
-	public double getValorVenda() {
-		return valorVenda;
+	public Double getValorVenda() {
+		return valorVenda == null ? 0 : valorVenda;
 	}
 
 	public void setValorVenda(Double valorVenda) {

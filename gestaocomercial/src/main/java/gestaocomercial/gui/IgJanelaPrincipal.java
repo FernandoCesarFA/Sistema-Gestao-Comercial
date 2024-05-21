@@ -367,9 +367,11 @@ public class IgJanelaPrincipal extends JFrame {
 		comboBoxMes.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
 
 		// Atualiza a tabela com o cliente selecionado
-		// comboBoxCliente.addItemListener((itemEvent) ->
-		// atualizarComponentes(itemEvent));
-
+		comboBoxCliente.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
+		
+		// Atualiza a tabelo com o produto selecionado
+		comboBoxProduto.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
+		
 		// Atualiza os componentes quando a janela volta para o foco.
 		addFocusListener(new FocusAdapter() {
 			@Override
@@ -477,17 +479,17 @@ public class IgJanelaPrincipal extends JFrame {
 		
 		List<Venda> vendaFiltradaList = vendaList;
 		
-		if (!comboBoxMes.getSelectedItem().equals("Todos")) {
-			vendaFiltradaList = vendaFiltradaList.stream().filter((v) -> v.getMesVenda().equals(comboBoxMes.getSelectedItem())).collect(Collectors.toList());
+		if (!comboBoxMes.getSelectedItem().toString().equals("Todos")) {
+			vendaFiltradaList = vendaFiltradaList.stream().filter((v) -> v.getDataVenda().getMonthValue() == Meses.obterValorPorAbreviacao(comboBoxMes.getSelectedItem().toString())).collect(Collectors.toList());
 		}
 		
-		if (!comboBoxCliente.getSelectedItem().equals("Todos")) {
-			vendaFiltradaList = vendaFiltradaList.stream().filter((v) -> v.getCliente().getNomeCliente().equals(comboBoxCliente.getSelectedItem())).collect(Collectors.toList());
+		if (!comboBoxCliente.getSelectedItem().toString().equals("Todos")) {
+			vendaFiltradaList = vendaFiltradaList.stream().filter((v) -> v.getCliente().getNomeCliente().equals(comboBoxCliente.getSelectedItem().toString())).collect(Collectors.toList());
 		}
 		
-		if (!comboBoxProduto.getSelectedItem().equals("Todos")) {
+		if (!comboBoxProduto.getSelectedItem().toString().equals("Todos")) {
 		    vendaFiltradaList = vendaFiltradaList.stream()
-		        .filter(v -> v.getProdutoList().stream().anyMatch(p -> p.isProduto(comboBoxProduto.getSelectedItem().toString())))
+		        .filter(v -> v.getProdutoList().stream().anyMatch(p -> p.getNomeProduto().equals(comboBoxProduto.getSelectedItem().toString())))
 		        .collect(Collectors.toList());
 		}
 		
@@ -495,7 +497,7 @@ public class IgJanelaPrincipal extends JFrame {
 		
 		// Remover o JScrollPane antigo da tabelaPanel
 		tabelaPanel.remove(0);
-
+		
 		// Adicionar o novo JScrollPane à tabelaPanel
 		tabelaPanel.add(atualizarTabela(vendasTabel, vendaFiltradaList));
 				
@@ -539,13 +541,9 @@ public class IgJanelaPrincipal extends JFrame {
 		int produtosTotais = calcularProdutosTotais();
 
 		labelValorVendasDiaria.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasDiarias)));
-		;
 		labelValorVendasTotal.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasTotais)));
-		;
 		labelValorVendasSemanal.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasSemanal)));
-		;
 		labelValorVendasMensal.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasMensais)));
-		;
 
 		labelValorClientes.setText(String.valueOf(clientesTotais));
 		labelValorProdutos.setText(String.valueOf(produtosTotais));
@@ -649,7 +647,7 @@ public class IgJanelaPrincipal extends JFrame {
 			for (Produto produto : venda.getProdutoList()) {
 				Object[] rowData = { venda.getCliente().getNomeCliente(), produto.getNomeProduto(),
 						produto.getQuantidadeVendida(), venda.getFormaPagamento().toString(), venda.getDataVenda(), // format(Utilitario.DIA_MES_ANO_FORMATTER),
-						venda.getValorVenda() };
+						produto.getPreco() };
 				model.addRow(rowData);
 			}
 		}

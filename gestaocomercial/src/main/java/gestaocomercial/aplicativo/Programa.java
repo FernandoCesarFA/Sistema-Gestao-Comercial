@@ -15,7 +15,7 @@ import gestaocomercial.gui.IgJanelaPrincipal;
 public class Programa {
 	
 	public static void main(String[] args) {
-    	gestaoComercial();
+		gestaoComercial();
 	}//main()
 
 	private static void gestaoComercial() {
