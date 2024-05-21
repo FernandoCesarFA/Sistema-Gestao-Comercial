@@ -1,18 +1,18 @@
 package gestaocomercial.dominio.enuns;
 
 public enum Meses {
-	JANEIRO("janeiro", 1),
-	FEVEREITO("fevereiro", 2),
-	MARCO("março", 3),
-	ABRIL("abril", 4),
-	MAIO("maio", 5),
-	JUNHO("junho", 6),
-	JULHO("julho", 7),
-	AGOSTO("agosto", 8),
-	SETEMBRO("setembro", 9),
-	OUTUBRO("outubro", 10),
-	NOVEMBRO("novembro", 11),
-	DEZEMBRO("dezembro", 12);
+	JANEIRO("Faneiro", 1),
+	FEVEREITO("Fevereiro", 2),
+	MARCO("Março", 3),
+	ABRIL("Abril", 4),
+	MAIO("Maio", 5),
+	JUNHO("Junho", 6),
+	JULHO("Julho", 7),
+	AGOSTO("Agosto", 8),
+	SETEMBRO("Setembro", 9),
+	OUTUBRO("Outubro", 10),
+	NOVEMBRO("Novembro", 11),
+	DEZEMBRO("Dezembro", 12);
 	
 	private String abreviacao;
 	int valor;
@@ -46,7 +46,7 @@ public enum Meses {
 	        abreviacoes[i] = meses[i].getAbreviacao();
 	    }
 
-	    abreviacoes[meses.length] = "todos"; 
+	    abreviacoes[meses.length] = "Todos"; 
 
 	    return abreviacoes;
 	}

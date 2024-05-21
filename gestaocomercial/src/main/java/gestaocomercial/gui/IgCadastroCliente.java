@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -127,7 +128,10 @@ public class IgCadastroCliente extends JDialog {
 		panel.add(cancelarButton);
 		
 		// Fecha a janela quando o botão cancelar for precionado.
-		cancelarButton.addActionListener((e) -> dispose());
+		cancelarButton.addActionListener((e) -> {
+		    processWindowEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+		});
+		
 
 		// Cadastra
 		cadastrarButton.addActionListener((e) -> cadastrarCliente(ClienteList));

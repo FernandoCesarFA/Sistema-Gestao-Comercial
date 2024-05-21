@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
@@ -13,8 +15,10 @@ import java.awt.event.WindowEvent;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
@@ -41,12 +45,13 @@ import gestaocomercial.dominio.enuns.Meses;
 
 public class IgJanelaPrincipal extends JFrame {
 	private static final long serialVersionUID = 1L;
-	
+
 	/**
-	 * {@code DecimalFormat} define um formata decimal par os números float. Formato definido ("#,##0.00");
+	 * {@code DecimalFormat} define um formata decimal par os números float. Formato
+	 * definido ("#,##0.00");
 	 */
 	public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,##0.00");
-	
+
 	private JLabel labelValorVendasDiaria;
 	private JLabel labelValorVendasSemanal;
 	private JLabel labelValorVendasMensal;
@@ -64,22 +69,24 @@ public class IgJanelaPrincipal extends JFrame {
 	private JButton buttonRelatorio;
 	private JButton buttonVenda;
 	private JTable vendasTabel;
-	
+	private IgCadastroCliente cadastroCliente = null;
+	private IgCadastroProduto cadastroProduto = null;
+
 	public IgJanelaPrincipal(DAO<Cliente> clienteDAO, DAO<Produto> produtoDAO, DAO<Venda> vendaDAO) {
 		clienteList = clienteDAO.listaTodos();
 		produtoList = produtoDAO.listaTodos();
 		vendaList = vendaDAO.listaTodos();
-		
+
 		String[] meses = Meses.getAbreviacoes();
-		List<String> nomesList = clienteList.stream().map(Cliente::getNomeCliente).toList();
-		List<String> produtoNomeList = produtoList.stream().map(Produto::getNomeProduto).toList();
-		
-//		nomesList.add("Todos");
-//		produtoNomeList.add("Todos");
-//		
-		String[] clientes = nomesList.toArray(String[]::new);
-		String[] produtos = produtoNomeList.toArray(String[]::new);
-		
+
+		// Obtendo as listas de nomes de clientes e produtos
+		List<String> nomesClientes = obterNomesClientes(clienteList);
+		List<String> nomesProdutos = obterNomesProdutos(produtoList);
+
+		// Convertendo listas para arrays e adicionando "Todos"
+		String[] clientes = convertListToArrayWithTodos(nomesClientes);
+		String[] produtos = convertListToArrayWithTodos(nomesProdutos);
+
 		setIconImage(Toolkit.getDefaultToolkit()
 				.getImage(IgJanelaPrincipal.class.getResource("/gestaocomercial/gui/imagens/comprasIcon.png")));
 
@@ -266,9 +273,9 @@ public class IgJanelaPrincipal extends JFrame {
 		mesLabel.setDisplayedMnemonic(KeyEvent.VK_M);
 		mesLabel.setBounds(6, 8, 34, 16);
 		panel.add(mesLabel);
-		
+
 		comboBoxMes = new JComboBox<String>();
-		
+
 		comboBoxMes.setModel(new DefaultComboBoxModel<>(meses));
 		comboBoxMes.setMaximumRowCount(6);
 		comboBoxMes.setSelectedIndex(mesAtual(meses));
@@ -281,6 +288,7 @@ public class IgJanelaPrincipal extends JFrame {
 		comboBoxCliente = new JComboBox<String>();
 		comboBoxCliente.setModel(new DefaultComboBoxModel<>(clientes));
 		comboBoxCliente.setBounds(195, 6, 118, 21);
+		comboBoxCliente.setSelectedIndex(clienteList.size());
 		panel.add(comboBoxCliente);
 		comboBoxCliente.setMaximumRowCount(6);
 		labelCliente.setLabelFor(comboBoxCliente);
@@ -291,10 +299,11 @@ public class IgJanelaPrincipal extends JFrame {
 		produtoLabel.setDisplayedMnemonic(KeyEvent.VK_D);
 		produtoLabel.setBounds(325, 8, 60, 16);
 		panel.add(produtoLabel);
-		
+
 		comboBoxProduto = new JComboBox<String>();
 		comboBoxProduto.setModel(new DefaultComboBoxModel<>(produtos));
 		comboBoxProduto.setMaximumRowCount(6);
+		comboBoxProduto.setSelectedIndex(produtoList.size());
 		produtoLabel.setLabelFor(comboBoxProduto);
 		comboBoxProduto.setBorder(null);
 		comboBoxProduto.setBackground(Color.WHITE);
@@ -315,20 +324,57 @@ public class IgJanelaPrincipal extends JFrame {
 		buttonProdutos.setBounds(132, 350, 110, 25);
 		centralPanel.add(buttonProdutos);
 		setVisible(true);
-		
+
 		vendasTabel = criarTabela();
 		tabelaPanel.add(vendasTabel);
 		tabelaPanel.add(criarTabelaVendas(vendaList));
-		
-		//Abre a tela de cadastro de Clientes
-		buttonCadastrarCliente.addActionListener((e) -> new IgCadastroCliente(this, clienteDAO, clienteList));
-		
-		//Abre a tela de cadastro de Produtos
-		buttonCadastrarProduto.addActionListener((e) -> new IgCadastroProduto(this, produtoDAO, produtoList));
-		
-		//Atualiza os componentes de acordo com o mes selecionado no JComboBox.
+
+		// Atualiza a GUI com os dados
+		atualizarComponentes();
+
+		// Abre a tela de cadastro de Clientes
+		buttonCadastrarCliente.addActionListener((e) -> {
+			cadastroCliente = new IgCadastroCliente(this, clienteDAO, clienteList);
+
+			// Adiciona um ouvinte de eventos à janela de cadastro de clientes
+			cadastroCliente.addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosed(WindowEvent e) {
+					// Este método será chamado quando a janela for fechada
+					atualizarComboBoxClientes();
+				}
+			});
+		});
+
+		// Abre a tela de cadastro de Produto
+		buttonCadastrarProduto.addActionListener((e) -> {
+			cadastroProduto = new IgCadastroProduto(this, produtoDAO, produtoList);
+
+			// Adiciona um ouvinte de eventos à janela de cadastro de produto
+			cadastroProduto.addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosed(WindowEvent e) {
+					// Este método será chamado quando a janela for fechada
+					atualizarComboBoxProduto();
+				}
+			});
+		});
+
+		// Atualiza os componentes de acordo com o mes selecionado no JComboBox.
 		comboBoxMes.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
-		
+
+		// Atualiza a tabela com o cliente selecionado
+		// comboBoxCliente.addItemListener((itemEvent) ->
+		// atualizarComponentes(itemEvent));
+
+		// Atualiza os componentes quando a janela volta para o foco.
+		addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusGained(FocusEvent e) {
+				atualizarComponentes();
+			}
+		});
+
 		// Fecha a conexão com banco de dados quando o programa for finalizado
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -345,7 +391,41 @@ public class IgJanelaPrincipal extends JFrame {
 			}
 		});
 	}
-	
+
+	private static List<String> obterNomesClientes(List<Cliente> clientes) {
+		return clientes.stream().map(Cliente::getNomeCliente).collect(Collectors.toList());
+	}
+
+	private static List<String> obterNomesProdutos(List<Produto> produtos) {
+		return produtos.stream().map(Produto::getNomeProduto).collect(Collectors.toList());
+	}
+
+	private void atualizarComboBoxClientes() {
+		comboBoxCliente
+				.setModel(new DefaultComboBoxModel<>(convertListToArrayWithTodos(obterNomesClientes(clienteList))));
+		comboBoxCliente.setSelectedIndex(clienteList.size());
+	}
+
+	protected void atualizarComboBoxProduto() {
+		comboBoxProduto
+				.setModel(new DefaultComboBoxModel<>(convertListToArrayWithTodos(obterNomesProdutos(produtoList))));
+		comboBoxProduto.setSelectedIndex(produtoList.size());
+	}
+
+	private static String[] convertListToArrayWithTodos(List<String> list) {
+		// Criar um array com uma posição extra
+		String[] array = list.toArray(new String[0]);
+		String[] resultArray = new String[array.length + 1];
+
+		// Copiar os elementos do array original para o novo array
+		System.arraycopy(array, 0, resultArray, 0, array.length);
+
+		// Adicionar "Todos" na última posição
+		resultArray[array.length] = "Todos";
+
+		return resultArray;
+	}
+
 	/**
 	 * Obtém o índice do mês atual em relação a um array de nomes de meses.
 	 *
@@ -363,51 +443,52 @@ public class IgJanelaPrincipal extends JFrame {
 		}
 		return 0;
 	}
-	
+
 	/**
-	 * Atualiza os componentes do GUI com base nos Eventos do JComboBox selecionados pelo usuário.
+	 * Atualiza os componentes do GUI com base nos Eventos do JComboBox selecionados
+	 * pelo usuário.
 	 *
 	 * @param itemEvent O evento de mudança de seleção no mês ou categoria.
 	 */
 	private void atualizarComponentes(ItemEvent itemEvent) {
 		if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
-			}
 			atualizarComponentes();
+		}
 	}
-	
+
 	private void atualizarComponentes() {
-	    atualizarEstadoBotaoClientes();
-	    atualizarEstadoBotaoProdutos();
-	    atualizarEstadoBotoesVendaERelatorio();
-	    atualizarLabels();
+		atualizarEstadoBotaoClientes();
+		atualizarEstadoBotaoProdutos();
+		atualizarEstadoBotoesVendaERelatorio();
+		atualizarLabels();
+		atualizarTabela(vendasTabel, vendaList);
 	}
 
 	private void atualizarEstadoBotaoClientes() {
-	    if (clienteList.isEmpty()) {
-	        buttonClientes.setEnabled(false);
-	    } else {
-	        buttonClientes.setEnabled(true);
-	    }
+		if (clienteList.isEmpty()) {
+			buttonClientes.setEnabled(false);
+		} else {
+			buttonClientes.setEnabled(true);
+		}
 	}
 
 	private void atualizarEstadoBotaoProdutos() {
-	    if (produtoList.isEmpty()) {
-	        buttonProdutos.setEnabled(false);
-	    } else {
-	        buttonProdutos.setEnabled(true);
-	    }
+		if (produtoList.isEmpty()) {
+			buttonProdutos.setEnabled(false);
+		} else {
+			buttonProdutos.setEnabled(true);
+		}
 	}
 
 	private void atualizarEstadoBotoesVendaERelatorio() {
-	    if (produtoList.isEmpty()) {
-	        buttonVenda.setEnabled(false);
-	        buttonRelatorio.setEnabled(false);
-	    } else {
-	        buttonVenda.setEnabled(true);
-	        buttonRelatorio.setEnabled(true);
-	    }
+		if (produtoList.isEmpty()) {
+			buttonVenda.setEnabled(false);
+			buttonRelatorio.setEnabled(false);
+		} else {
+			buttonVenda.setEnabled(true);
+			buttonRelatorio.setEnabled(true);
+		}
 	}
-
 
 	private void atualizarLabels() {
 		double vendasDiarias = calcularVendasDiarias();
@@ -416,12 +497,16 @@ public class IgJanelaPrincipal extends JFrame {
 		double vendasMensais = calcularVendasMensais();
 		int clientesTotais = calcularClientesTotais();
 		int produtosTotais = calcularProdutosTotais();
-		
-		labelValorVendasDiaria.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasDiarias)));;
-		labelValorVendasTotal.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasTotais)));;
-		labelValorVendasSemanal.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasSemanal)));;
-		labelValorVendasMensal.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasMensais)));;
-		
+
+		labelValorVendasDiaria.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasDiarias)));
+		;
+		labelValorVendasTotal.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasTotais)));
+		;
+		labelValorVendasSemanal.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasSemanal)));
+		;
+		labelValorVendasMensal.setText(String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(vendasMensais)));
+		;
+
 		labelValorClientes.setText(String.valueOf(clientesTotais));
 		labelValorProdutos.setText(String.valueOf(produtosTotais));
 	}
@@ -434,19 +519,22 @@ public class IgJanelaPrincipal extends JFrame {
 	private double calcularVendasTotais() {
 		return vendaList.stream().mapToDouble(Venda::getValorVenda).sum();
 	}
-	
+
 	private double calcularVendasSemanais(LocalDate data) {
-        WeekFields weekFields = WeekFields.of(Locale.getDefault());
-        int weekOfYear = data.get(weekFields.weekOfWeekBasedYear());
-        
-        return vendaList.stream()
-            .filter(venda -> venda.getDataVenda().get(weekFields.weekOfWeekBasedYear()) == weekOfYear)
-            .mapToDouble(Venda::getValorVenda)
-            .sum();
-    }
+		WeekFields weekFields = WeekFields.of(Locale.getDefault());
+		int weekOfYear = data.get(weekFields.weekOfWeekBasedYear());
+
+		return vendaList.stream()
+				.filter(venda -> venda.getDataVenda().get(weekFields.weekOfWeekBasedYear()) == weekOfYear)
+				.mapToDouble(Venda::getValorVenda).sum();
+	}
 
 	private double calcularVendasMensais() {
 		String mesSelecionado = comboBoxMes.getSelectedItem().toString();
+		if (mesSelecionado.equals("Todos")) {
+			return vendaList.stream().mapToDouble(Venda::getValorVenda).sum();
+		}
+
 		int valorMes = Meses.obterValorPorAbreviacao(mesSelecionado);
 
 		return vendaList.stream().filter(venda -> Integer.parseInt(venda.getMesVenda()) == valorMes)
@@ -460,86 +548,76 @@ public class IgJanelaPrincipal extends JFrame {
 	private int calcularProdutosTotais() {
 		return produtoList.size();
 	}
-	
 
-    private JTable criarTabela() {
-        // Criar a tabela com o modelo criado
-        JTable tabela = new JTable(new DefaultTableModel(
-                new Object[][]{},
-                new String[]{
-                        "Cliente", "Produto", "Quantidade", "Pagamento", "Data da Venda", "Valor"
-                }
-        )) {
-            private static final long serialVersionUID = 1L;
+	private JTable criarTabela() {
+		// Criar a tabela com o modelo criado
+		JTable tabela = new JTable(new DefaultTableModel(new Object[][] {},
+				new String[] { "Cliente", "Produto", "Quantidade", "Pagamento", "Data da Venda", "Valor" })) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                // Todas as células não são editáveis
-                return false;
-            }
-        };
+			@Override
+			public boolean isCellEditable(int row, int column) {
+				// Todas as células não são editáveis
+				return false;
+			}
+		};
 
-        // Impedir reordenação das colunas
-        tabela.getTableHeader().setReorderingAllowed(false);
+		// Impedir reordenação das colunas
+		tabela.getTableHeader().setReorderingAllowed(false);
 
-        // Configurar o estilo da tabela
-        tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tabela.setFillsViewportHeight(true);
+		// Configurar o estilo da tabela
+		tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		tabela.setFillsViewportHeight(true);
 
-        // Definir cor de fundo da tabela
-        tabela.setBackground(Color.WHITE);
+		// Definir cor de fundo da tabela
+		tabela.setBackground(Color.WHITE);
 
-        // Remover sombra da linha quando uma célula é selecionada
-        tabela.setRowSelectionAllowed(true);
+		// Remover sombra da linha quando uma célula é selecionada
+		tabela.setRowSelectionAllowed(true);
 
-        // Definir cor de fundo do cabeçalho da tabela
-        tabela.getTableHeader().setBackground(Color.WHITE);
+		// Definir cor de fundo do cabeçalho da tabela
+		tabela.getTableHeader().setBackground(Color.WHITE);
 
-        // Adicionar bordas entre as colunas e linhas da tabela
-        tabela.setShowGrid(true);
-        tabela.setGridColor(Color.LIGHT_GRAY);
+		// Adicionar bordas entre as colunas e linhas da tabela
+		tabela.setShowGrid(true);
+		tabela.setGridColor(Color.LIGHT_GRAY);
 
-        // Ajustar a largura das colunas conforme necessário
-        tabela.getColumnModel().getColumn(0).setPreferredWidth(100);
-        tabela.getColumnModel().getColumn(1).setPreferredWidth(200);
-        tabela.getColumnModel().getColumn(2).setPreferredWidth(70);
-        tabela.getColumnModel().getColumn(3).setPreferredWidth(100);
-        tabela.getColumnModel().getColumn(4).setPreferredWidth(100);
-        tabela.getColumnModel().getColumn(5).setPreferredWidth(70);
+		// Ajustar a largura das colunas conforme necessário
+		tabela.getColumnModel().getColumn(0).setPreferredWidth(100);
+		tabela.getColumnModel().getColumn(1).setPreferredWidth(200);
+		tabela.getColumnModel().getColumn(2).setPreferredWidth(70);
+		tabela.getColumnModel().getColumn(3).setPreferredWidth(100);
+		tabela.getColumnModel().getColumn(4).setPreferredWidth(100);
+		tabela.getColumnModel().getColumn(5).setPreferredWidth(70);
 
-        return tabela;
-    }
+		return tabela;
+	}
 
-    public JScrollPane criarTabelaVendas(List<Venda> vendaList) {
-        JTable tabelaVendas = criarTabela();
-        JScrollPane scrollPane = atualizarTabela(tabelaVendas, vendaList);
-        return scrollPane;
-    }
+	public JScrollPane criarTabelaVendas(List<Venda> vendaList) {
+		JTable tabelaVendas = criarTabela();
+		JScrollPane scrollPane = atualizarTabela(tabelaVendas, vendaList);
+		return scrollPane;
+	}
 
-    private JScrollPane atualizarTabela(JTable tabelaVendas, List<Venda> vendaList) {
-        DefaultTableModel model = (DefaultTableModel) tabelaVendas.getModel();
+	private JScrollPane atualizarTabela(JTable tabelaVendas, List<Venda> vendaList) {
+		DefaultTableModel model = (DefaultTableModel) tabelaVendas.getModel();
 
-        // Limpar dados existentes da tabela
-        model.setRowCount(0);
+		// Limpar dados existentes da tabela
+		model.setRowCount(0);
 
-        for (Venda venda : vendaList) {
-            for (Produto produto : venda.getProdutoList()) {
-                Object[] rowData = {
-                        venda.getCliente().getNomeCliente(),
-                        produto.getNomeProduto(),
-                        produto.getQuantidadeVendida(),
-                        venda.getFormaPagamento().toString(),
-                        venda.getDataVenda(), //format(Utilitario.DIA_MES_ANO_FORMATTER),
-                        venda.getValorVenda()
-                };
-                model.addRow(rowData);
-            }
-        }
+		for (Venda venda : vendaList) {
+			for (Produto produto : venda.getProdutoList()) {
+				Object[] rowData = { venda.getCliente().getNomeCliente(), produto.getNomeProduto(),
+						produto.getQuantidadeVendida(), venda.getFormaPagamento().toString(), venda.getDataVenda(), // format(Utilitario.DIA_MES_ANO_FORMATTER),
+						venda.getValorVenda() };
+				model.addRow(rowData);
+			}
+		}
 
-        // Criar um JScrollPane para permitir a rolagem da tabela
-        JScrollPane scrollPane = new JScrollPane(tabelaVendas);
+		// Criar um JScrollPane para permitir a rolagem da tabela
+		JScrollPane scrollPane = new JScrollPane(tabelaVendas);
 
-        return scrollPane;
-    }
+		return scrollPane;
+	}
 
 }

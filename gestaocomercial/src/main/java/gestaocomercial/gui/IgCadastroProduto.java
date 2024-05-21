@@ -3,6 +3,7 @@ package gestaocomercial.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -93,8 +94,9 @@ public class IgCadastroProduto extends JDialog {
 		cancelarButton.setBounds(264, 6, 84, 28);
 		buttonPanel.add(cancelarButton);
 		
-		// Fecha a janela quando o botão cancelar for precionado.
-		cancelarButton.addActionListener((e) -> dispose());
+		cancelarButton.addActionListener((e) -> {
+		    processWindowEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+		});
 		
 		// Cadastra o produto
 		cadastrarButton.addActionListener((e) -> cadastrarProduto(produtoList));
@@ -134,7 +136,6 @@ public class IgCadastroProduto extends JDialog {
 		if (mensagemDeErro.isEmpty()) {
 			produtoDao.adiciona(produto);
 			produtoList.add(produto);
-			
 			dispose();
 		}
 		else {
