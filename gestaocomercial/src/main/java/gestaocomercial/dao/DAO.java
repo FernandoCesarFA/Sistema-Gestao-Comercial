@@ -21,7 +21,7 @@ public class DAO<T> implements AutoCloseable {
 	
 	public void adiciona(T t) {
 		entityManager.getTransaction().begin();
-		entityManager.persist(t);
+		entityManager.merge(t);
 		entityManager.getTransaction().commit();
 	}//adiciona()
 	

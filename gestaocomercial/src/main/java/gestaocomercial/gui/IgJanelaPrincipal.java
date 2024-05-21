@@ -398,11 +398,15 @@ public class IgJanelaPrincipal extends JFrame {
 	}
 
 	private static List<String> obterNomesClientes(List<Cliente> clientes) {
-		return clientes.stream().map(Cliente::getNomeCliente).collect(Collectors.toList());
+		List<String> nomeListOrdenada = clientes.stream().map(Cliente::getNomeCliente).collect(Collectors.toList());
+		nomeListOrdenada.sort((x, y) -> x.compareToIgnoreCase(y));
+		return nomeListOrdenada;
 	}
 
 	private static List<String> obterNomesProdutos(List<Produto> produtos) {
-		return produtos.stream().map(Produto::getNomeProduto).collect(Collectors.toList());
+		List<String> produtosOrdenados = produtos.stream().map(Produto::getNomeProduto).collect(Collectors.toList());
+		produtosOrdenados.sort((x, y) -> x.compareToIgnoreCase(y));
+		return produtosOrdenados;
 	}
 
 	private void atualizarComboBoxClientes() {
@@ -590,7 +594,7 @@ public class IgJanelaPrincipal extends JFrame {
 	private JTable criarTabela() {
 		// Criar a tabela com o modelo criado
 		JTable tabela = new JTable(new DefaultTableModel(new Object[][] {},
-				new String[] { "Cliente", "Produto", "Quantidade", "Pagamento", "Data da Venda", "Valor" })) {
+				new String[] { "Cliente", "Produto", "Quantidade", "Pagamento", "Data", "Valor" })) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
