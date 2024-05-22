@@ -34,11 +34,11 @@ public class Venda implements Serializable {
 
 	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(
-		name = "venda_produto",
+		name = "venda_item",
 		joinColumns = @JoinColumn(name = "venda_id"),
-		inverseJoinColumns = @JoinColumn(name = "produto_id")
+		inverseJoinColumns = @JoinColumn(name = "item_id")
 	)
-	private List<Produto> produtoList = new ArrayList<>();
+	private List<Item> itemList = new ArrayList<>();
 
 	private FormaPagamento formaPagamento;
 	private LocalDate dataVenda;
@@ -60,19 +60,19 @@ public class Venda implements Serializable {
 		this.cliente = cliente;
 	}
 	
-	public List<Produto> getProdutoList() {
-		return produtoList;
+	public List<Item> getItemList() {
+		return itemList;
+	}
+
+	public void setItemList(List<Item> itemList) {
+		this.itemList = itemList;
+	}
+
+	public void adicionarItem(Item item) {
+		itemList.add(item);
 	}
 	
-	public void setProdutoList(List<Produto> produtoList) {
-		this.produtoList = produtoList;
-	}
-	
-	public void adicionarProduto(Produto produto) {
-		produtoList.add(produto);
-	}
-	
-	 /**
+	/**
      * Obtém a forma de pagamento.
      *
      * @return a forma de pagamento
@@ -120,9 +120,9 @@ public class Venda implements Serializable {
 		this.valorVenda = valorVenda;
 	}
 
-	public void setVendas(Cliente cliente, List<Produto> produtoList, FormaPagamento formaPagamento) {
+	public void setVendas(Cliente cliente, List<Item> itemList, FormaPagamento formaPagamento) {
 		setCliente(cliente);
-		setProdutoList(produtoList);
+		setItemList(itemList);
 		setFormaPagamento(formaPagamento);
 	}
 	

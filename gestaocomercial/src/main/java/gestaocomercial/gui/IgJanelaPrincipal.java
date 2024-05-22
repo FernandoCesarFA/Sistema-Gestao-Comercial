@@ -38,6 +38,7 @@ import javax.swing.table.DefaultTableModel;
 
 import gestaocomercial.dao.DAO;
 import gestaocomercial.dominio.Cliente;
+import gestaocomercial.dominio.Item;
 import gestaocomercial.dominio.Produto;
 import gestaocomercial.dominio.Venda;
 import gestaocomercial.dominio.enuns.Meses;
@@ -493,7 +494,7 @@ public class IgJanelaPrincipal extends JFrame {
 		
 		if (!comboBoxProduto.getSelectedItem().toString().equals("Todos")) {
 		    vendaFiltradaList = vendaFiltradaList.stream()
-		        .filter(v -> v.getProdutoList().stream().anyMatch(p -> p.getNomeProduto().equals(comboBoxProduto.getSelectedItem().toString())))
+		        .filter(v -> v.getItemList().stream().anyMatch(p -> p.getProduto().getNomeProduto().equals(comboBoxProduto.getSelectedItem().toString())))
 		        .collect(Collectors.toList());
 		}
 		
@@ -594,7 +595,7 @@ public class IgJanelaPrincipal extends JFrame {
 	private JTable criarTabela() {
 		// Criar a tabela com o modelo criado
 		JTable tabela = new JTable(new DefaultTableModel(new Object[][] {},
-				new String[] { "Cliente", "Produto", "Quantidade", "Pagamento", "Data", "Valor" })) {
+				new String[] { "Cliente", "Produto", "Quantidade", "Pagamento", "Data", "Valor Unitario", "Valor Total"})) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -626,11 +627,12 @@ public class IgJanelaPrincipal extends JFrame {
 
 		// Ajustar a largura das colunas conforme necessário
 		tabela.getColumnModel().getColumn(0).setPreferredWidth(100);
-		tabela.getColumnModel().getColumn(1).setPreferredWidth(200);
-		tabela.getColumnModel().getColumn(2).setPreferredWidth(70);
+		tabela.getColumnModel().getColumn(1).setPreferredWidth(170);
+		tabela.getColumnModel().getColumn(2).setPreferredWidth(80);
 		tabela.getColumnModel().getColumn(3).setPreferredWidth(100);
-		tabela.getColumnModel().getColumn(4).setPreferredWidth(100);
-		tabela.getColumnModel().getColumn(5).setPreferredWidth(70);
+		tabela.getColumnModel().getColumn(4).setPreferredWidth(80);
+		tabela.getColumnModel().getColumn(5).setPreferredWidth(90);
+		tabela.getColumnModel().getColumn(6).setPreferredWidth(90);
 
 		return tabela;
 	}
@@ -648,17 +650,19 @@ public class IgJanelaPrincipal extends JFrame {
 		model.setRowCount(0);
 
 		for (Venda venda : vendaList) {
-			for (Produto produto : venda.getProdutoList()) {
-				Object[] rowData = { venda.getCliente().getNomeCliente(), produto.getNomeProduto(),
-						produto.getQuantidadeVendida(), venda.getFormaPagamento().toString(), venda.getDataVenda(), // format(Utilitario.DIA_MES_ANO_FORMATTER),
-						produto.getPreco() };
+			for (Item item : venda.getItemList()) {
+				if (!comboBoxProduto.getSelectedItem().toString().equals("Todos") && !item.getProduto().getNomeProduto().equals(comboBoxProduto.getSelectedItem().toString())) {
+					continue;
+				}
+				Object[] rowData = { venda.getCliente().getNomeCliente(), item.getProduto().getNomeProduto(),
+						item.getProduto().getQuantidadeVendida(), venda.getFormaPagamento().toString(), venda.getDataVenda(), // format(Utilitario.DIA_MES_ANO_FORMATTER),
+						item.getValorUnitario(), item.getValorTotal()};
 				model.addRow(rowData);
 			}
 		}
 
 		// Criar um JScrollPane para permitir a rolagem da tabela
 		JScrollPane scrollPane = new JScrollPane(tabelaVendas);
-
 		return scrollPane;
 	}
 
