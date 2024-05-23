@@ -17,12 +17,13 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import gestaocomercial.dominio.enuns.FormaPagamento;
+import gestaocomercial.utilitarios.Utilitario;
 
 
 
 @Entity
 @Table(name = "vendas")
-public class Venda implements Serializable {
+public class Venda implements Serializable, Utilitario {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -106,6 +107,10 @@ public class Venda implements Serializable {
     
 	public LocalDate getDataVenda() {
 		return dataVenda;
+	}
+	
+	public String getDataVendaFormatada() {
+		return dataVenda.format(DIA_MES_ANO_FORMATTER);
 	}
 	
 	public void setDataVenda(LocalDate dataVenda) {

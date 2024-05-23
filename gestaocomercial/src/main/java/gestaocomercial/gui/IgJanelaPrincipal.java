@@ -12,7 +12,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
 import java.util.List;
@@ -42,15 +41,10 @@ import gestaocomercial.dominio.Item;
 import gestaocomercial.dominio.Produto;
 import gestaocomercial.dominio.Venda;
 import gestaocomercial.dominio.enuns.Meses;
+import gestaocomercial.utilitarios.Utilitario;
 
-public class IgJanelaPrincipal extends JFrame {
+public class IgJanelaPrincipal extends JFrame implements Utilitario {
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * {@code DecimalFormat} define um formata decimal par os números float. Formato
-	 * definido ("#,##0.00");
-	 */
-	public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,##0.00");
 
 	private JLabel labelValorVendasDiaria;
 	private JLabel labelValorVendasSemanal;
@@ -289,7 +283,7 @@ public class IgJanelaPrincipal extends JFrame {
 
 		comboBoxCliente = new JComboBox<String>();
 		comboBoxCliente.setModel(new DefaultComboBoxModel<>(clientes));
-		comboBoxCliente.setBounds(195, 6, 118, 21);
+		comboBoxCliente.setBounds(195, 6, 142, 21);
 		comboBoxCliente.setSelectedIndex(clienteList.size());
 		panel.add(comboBoxCliente);
 		comboBoxCliente.setMaximumRowCount(6);
@@ -299,7 +293,7 @@ public class IgJanelaPrincipal extends JFrame {
 
 		JLabel produtoLabel = new JLabel("Produto:");
 		produtoLabel.setDisplayedMnemonic(KeyEvent.VK_D);
-		produtoLabel.setBounds(325, 8, 60, 16);
+		produtoLabel.setBounds(349, 8, 60, 16);
 		panel.add(produtoLabel);
 
 		comboBoxProduto = new JComboBox<String>();
@@ -309,7 +303,7 @@ public class IgJanelaPrincipal extends JFrame {
 		produtoLabel.setLabelFor(comboBoxProduto);
 		comboBoxProduto.setBorder(null);
 		comboBoxProduto.setBackground(Color.WHITE);
-		comboBoxProduto.setBounds(377, 6, 118, 21);
+		comboBoxProduto.setBounds(402, 6, 137, 21);
 		panel.add(comboBoxProduto);
 
 		buttonClientes = new JButton("Clientes..");
@@ -645,7 +639,9 @@ public class IgJanelaPrincipal extends JFrame {
 
 	private JScrollPane atualizarTabela(JTable tabelaVendas, List<Venda> vendaList) {
 		DefaultTableModel model = (DefaultTableModel) tabelaVendas.getModel();
-
+		
+		 vendaList.sort((v, v2) -> v2.getDataVenda().compareTo(v.getDataVenda()));
+		
 		// Limpar dados existentes da tabela
 		model.setRowCount(0);
 
@@ -655,8 +651,8 @@ public class IgJanelaPrincipal extends JFrame {
 					continue;
 				}
 				Object[] rowData = { venda.getCliente().getNomeCliente(), item.getProduto().getNomeProduto(),
-						item.getProduto().getQuantidadeVendida(), venda.getFormaPagamento().toString(), venda.getDataVenda(), // format(Utilitario.DIA_MES_ANO_FORMATTER),
-						item.getValorUnitario(), item.getValorTotal()};
+						item.getProduto().getQuantidadeVendida(), venda.getFormaPagamento().toString(), venda.getDataVendaFormatada(), 
+						String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(item.getValorUnitario()), String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(item.getValorTotal())))};
 				model.addRow(rowData);
 			}
 		}

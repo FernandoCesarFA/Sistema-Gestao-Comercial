@@ -1,15 +1,33 @@
 package gestaocomercial.utilitarios;
 
+import java.text.DecimalFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public interface Utilitario {
-
-    public static boolean verificaStringVazia(String str){
+	
+	/**
+	 * {@code DecimalFormat} define um formata decimal par os números float. Formato
+	 * definido ("#,##0.00");
+	 */
+	public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,##0.00");
+	
+	/**
+	 * {@code String} que representa regex de uma data no formato dd/MM/yyyy onde dd, mm e yyyy são números.
+	 */
+	public static final String DATA_REGEX = "^\\d{2}/\\d{2}/\\d{4}$";
+	
+	/**
+	 * {@code DateTimeFormatter} no formato dd/MM/yyyy.
+	 */
+	public static final DateTimeFormatter DIA_MES_ANO_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+	
+    default boolean verificaStringVazia(String str) {
         return str == null || str.isEmpty();
     }
 
-    public static boolean verificaEmailValido(String email) {
+    default boolean verificaEmailValido(String email) {
         boolean isEmailIdValid = false;
         if (email != null && email.length() > 0) {
             String expression = "^[\\w\\.-]+@([\\w\\-]+\\.)+[A-Z]{2,4}$";
@@ -22,7 +40,7 @@ public interface Utilitario {
         return isEmailIdValid;
     }
 
-    public static boolean ValidaCPF(String cpf) {
+    default boolean validaCPF(String cpf) {
         // Remover caracteres não numéricos
         cpf = cpf.replaceAll("\\D", "");
 
@@ -60,7 +78,7 @@ public interface Utilitario {
         }
     }
 
-    public static boolean validaCNPJ(String cnpj) {
+    default boolean validaCNPJ(String cnpj) {
         if (!cnpj.substring(0, 1).equals("")) {
             try {
                 cnpj = cnpj.replace('.', ' ');//onde há ponto coloca espaço
@@ -86,8 +104,7 @@ public interface Utilitario {
                     }
                 }
                 dig = 11 - (soma % 11);
-                cnpj_calc += (dig == 10 || dig == 11) ? "0" : Integer.toString(
-                        dig);
+                cnpj_calc += (dig == 10 || dig == 11) ? "0" : Integer.toString(dig);
                 /* Segunda parte */
                 soma = 0;
                 for (int i = 0; i < 5; i++) {
@@ -101,15 +118,12 @@ public interface Utilitario {
                     }
                 }
                 dig = 11 - (soma % 11);
-                cnpj_calc += (dig == 10 || dig == 11) ? "0" : Integer.toString(
-                        dig);
+                cnpj_calc += (dig == 10 || dig == 11) ? "0" : Integer.toString(dig);
                 return cnpj.equals(cnpj_calc);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 return false;
             }
-        }
-        else {
+        } else {
             return false;
         }
     }
