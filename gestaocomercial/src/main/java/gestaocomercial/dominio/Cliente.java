@@ -16,8 +16,7 @@ public class Cliente implements Serializable {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
-	private String cpf;
-	private String cnpj;
+	private String documento;
 	private String nomeCliente;
 	private String email;
 	private String telefone;
@@ -31,22 +30,14 @@ public class Cliente implements Serializable {
 		this.id = id;
 	}
 	
-	public String getCpf() {
-		return cpf;
+	public String getDocumento() {
+		return documento;
 	}
-	
-	public void setCpf(String cpf) {
-		this.cpf = cpf;
+
+	public void setDocumento(String documento) {
+		this.documento = documento;
 	}
-	
-	public String getCnpj() {
-		return cnpj;
-	}
-	
-	public void setCnpj(String cnpj) {
-		this.cnpj = cnpj;
-	}
-	
+
 	public String getNomeCliente() {
 		return nomeCliente;
 	}
@@ -79,9 +70,8 @@ public class Cliente implements Serializable {
 		this.endereco = endereco;
 	}
 
-	public void setCliente(String cpf, String cnpj, String nomeCliente, String email, String telefone, String endereco) {
-		setCpf(cpf);
-		setCnpj(cnpj);
+	public void setCliente(String documento, String nomeCliente, String email, String telefone, String endereco) {
+		setDocumento(documento);
 		setNomeCliente(nomeCliente);
 		setEmail(email);
 		setTelefone(telefone);
