@@ -2,7 +2,9 @@ package gestaocomercial.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
@@ -22,6 +24,8 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
 import gestaocomercial.dao.DAO;
@@ -46,8 +50,11 @@ public class IgVenda extends JDialog implements Utilitario {
     private JButton vendaButton;
     private JButton cancelarButton;
     private JTable produtosTable;
+    private JTable vendasTable;
+    private DefaultTableModel vendasTableModel;
+    //private List<Venda> vendaAtualList = new ArrayList<Venda>();
 
-    public IgVenda(List<Cliente> clienteList, List<Produto> produtoList, List<Venda> vendaList, DAO<Venda> vendaDao) {
+    public IgVenda(Component janelaPai, List<Cliente> clienteList, List<Produto> produtoList, List<Venda> vendaList, DAO<Venda> vendaDao) {
         String[] clientes = IgJanelaPrincipal.obterNomesClientes(clienteList).toArray(new String[0]);
 
         setBounds(100, 100, 1154, 521);
@@ -87,11 +94,18 @@ public class IgVenda extends JDialog implements Utilitario {
         produtosPanel.add(tabelaProdutosPanel);
         tabelaProdutosPanel.setLayout(new BorderLayout());
 
-        // Criar o modelo de tabela
+        // Criar o modelo de tabela para produtos não editáveis
         DefaultTableModel tableModel = new DefaultTableModel(
             new Object[][] {},
             new String[] {"Nome do Produto", "Quantidade em Estoque", "Preço"}
-        );
+        ) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
 
         // Preencher o modelo de tabela com dados dos produtos
         for (Produto produto : produtoList) {
@@ -126,8 +140,44 @@ public class IgVenda extends JDialog implements Utilitario {
         vendaPanel.setLayout(null);
 
         tabelaVendaPanel = new JPanel();
+        tabelaVendaPanel.setBackground(new Color(255, 255, 255));
         tabelaVendaPanel.setBounds(6, 55, 522, 290);
         vendaPanel.add(tabelaVendaPanel);
+        tabelaVendaPanel.setLayout(new BorderLayout());
+
+        // Criação da tabela de vendas
+        vendasTableModel = new DefaultTableModel(
+            new Object[][] {},
+            new String[] {"Cliente", "Quantidade", "Produto","Preço Unitário", "Valor Total"}
+        ) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 2 || column == 3; // Permitir edição de Quantidade e Preço Unitário
+            }
+        };
+        vendasTable = new JTable(vendasTableModel);
+        vendasTable.setFillsViewportHeight(true);
+        vendasTable.setBackground(Color.WHITE);
+        vendasTable.getTableHeader().setBackground(Color.WHITE);
+        vendasTable.setShowGrid(true);
+        vendasTable.setGridColor(Color.LIGHT_GRAY);
+        JScrollPane vendasScrollPane = new JScrollPane(vendasTable);
+        tabelaVendaPanel.add(vendasScrollPane, BorderLayout.CENTER);
+
+        vendasTableModel.addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                if (e.getType() == TableModelEvent.UPDATE) {
+                    int row = e.getFirstRow();
+                    int column = e.getColumn();
+                    if (column == 2 || column == 3) {
+                        atualizarValorTotal(row);
+                    }
+                }
+            }
+        });
 
         JPanel totalPanel = new JPanel();
         totalPanel.setBackground(new Color(255, 255, 255));
@@ -154,20 +204,22 @@ public class IgVenda extends JDialog implements Utilitario {
 
         lblProdutos = new JLabel("Produtos:");
         numeroProdutosPanel.add(lblProdutos);
+        lblProdutos.setVerticalAlignment(SwingConstants.TOP);
         lblProdutos.setForeground(new Color(0, 128, 128));
         lblProdutos.setFont(new Font("SansSerif", Font.BOLD, 16));
 
         numeroProdutosLabel = new JLabel();
         numeroProdutosLabel.setText("0");
-        numeroProdutosLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
+        numeroProdutosLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
         numeroProdutosPanel.add(numeroProdutosLabel);
 
-        clienteLabel = new JLabel("Cliente:");
-        clienteLabel.setDisplayedMnemonic(KeyEvent.VK_T);
-        clienteLabel.setBounds(18, 43, 57, 16);
+        clienteLabel = new JLabel("Cliente");
+        clienteLabel.setLabelFor(clienteComboBox);
+        clienteLabel.setDisplayedMnemonic(KeyEvent.VK_N);
+        clienteLabel.setBounds(12, 38, 42, 15);
         panel.add(clienteLabel);
 
-        clienteComboBox = new JComboBox<String>();
+        clienteComboBox = new JComboBox<>();
         clienteComboBox.setModel(new DefaultComboBoxModel<>(clientes));
         clienteComboBox.setSelectedIndex(0);
         clienteComboBox.setMaximumRowCount(8);
@@ -191,8 +243,81 @@ public class IgVenda extends JDialog implements Utilitario {
         panel.add(cancelarButton);
 
         buscarTextField.addActionListener((e) -> pesquisarProduto(produtosTable));
+
+        // Adicionar evento de tecla para a tabela de produtos
+        produtosTable.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    int selectedRow = produtosTable.getSelectedRow();
+                    if (selectedRow != -1) {
+                        adicionarProdutoAVenda(selectedRow);
+                    }
+                }
+            }
+        });
         
+        // Adicionar evento de tecla para a tabela de vendas
+        vendasTable.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                    int selectedRow = vendasTable.getSelectedRow();
+                    if (selectedRow != -1) {
+                        removerProdutoVenda(selectedRow);
+                    }
+                }
+            }
+        });
+
+        setModal(true);
+        setResizable(false);
+        setLocationRelativeTo(janelaPai);
         setVisible(true);
+    }
+    
+    private void removerProdutoVenda(int selectedRow) {
+    	((DefaultTableModel) vendasTable.getModel()).removeRow(selectedRow);
+    	atualizarTotais();
+	}
+
+    private void adicionarProdutoAVenda(int row) {
+        String nomeProduto = (String) produtosTable.getValueAt(row, 0);
+        String cliente = (String) clienteComboBox.getSelectedItem();
+        int quantidade = 1;  // Quantidade padrão, você pode adicionar lógica para personalizar
+        String preco = (String) produtosTable.getValueAt(row, 2);
+        preco = preco.replace("R$: ", "").replace(",", ".");
+
+        // Verificar se o produto já está na tabela de vendas
+        for (int i = 0; i < vendasTableModel.getRowCount(); i++) {
+            if (vendasTableModel.getValueAt(i, 1).equals(nomeProduto)) {
+                JOptionPane.showMessageDialog(this, "O produto já está no carrinho.", "Produto Duplicado", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+
+        float precoUnitario = Float.parseFloat(preco);
+        vendasTableModel.addRow(new Object[] {cliente, nomeProduto, quantidade, precoUnitario, precoUnitario * quantidade});
+
+        atualizarTotais();
+    }
+
+    private void atualizarValorTotal(int row) {
+        int quantidade = Integer.parseInt(vendasTableModel.getValueAt(row, 2).toString());
+        float precoUnitario = Float.parseFloat( vendasTableModel.getValueAt(row, 3).toString());
+        float valorTotal = quantidade * precoUnitario;
+        vendasTableModel.setValueAt(valorTotal, row, 4);
+        atualizarTotais();
+    }
+
+    private void atualizarTotais() {
+        int totalProdutos = vendasTableModel.getRowCount();
+        double valorTotal = 0.0;
+        for (int i = 0; i < totalProdutos; i++) {
+            valorTotal += Float.parseFloat(vendasTableModel.getValueAt(i, 4).toString());
+        }
+        numeroProdutosLabel.setText(String.valueOf(totalProdutos));
+        valorTotalLabel.setText(String.format("R$: %.2f", valorTotal));
     }
 
     /**

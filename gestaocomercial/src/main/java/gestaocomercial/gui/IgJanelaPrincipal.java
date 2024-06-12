@@ -362,7 +362,8 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		// Atualiza a tabelo com o produto selecionado
 		comboBoxProduto.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
 		
-		buttonVenda.addActionListener((e) -> new IgVenda(clienteList, produtoList, vendaList, vendaDAO));
+		// Abre a GUI reponsável pela a venda
+		buttonVenda.addActionListener((e) -> new IgVenda(this, clienteList, produtoList, vendaList, vendaDAO));
 		
 		// Atualiza os componentes quando a janela volta para o foco.
 		addFocusListener(new FocusAdapter() {
@@ -628,7 +629,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		return tabela;
 	}
 
-	public JScrollPane criarTabelaVendas(List<Venda> vendaList) {
+	private JScrollPane criarTabelaVendas(List<Venda> vendaList) {
 		JTable tabelaVendas = criarTabela();
 		JScrollPane scrollPane = atualizarTabela(tabelaVendas, vendaList);
 		return scrollPane;
