@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
@@ -204,10 +202,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		buttonCadastrarProduto.setBackground(Color.WHITE);
 
 		buttonVenda = new JButton("Realizar Venda...");
-		buttonVenda.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
+		
 		buttonVenda.setMnemonic(KeyEvent.VK_V);
 		buttonVenda.setFont(new Font("SansSerif", Font.PLAIN, 11));
 		buttonVenda.setBackground(Color.WHITE);
@@ -367,6 +362,8 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		// Atualiza a tabelo com o produto selecionado
 		comboBoxProduto.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
 		
+		buttonVenda.addActionListener((e) -> new IgVenda(clienteList, produtoList, vendaList, vendaDAO));
+		
 		// Atualiza os componentes quando a janela volta para o foco.
 		addFocusListener(new FocusAdapter() {
 			@Override
@@ -392,7 +389,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		});
 	}
 
-	private static List<String> obterNomesClientes(List<Cliente> clientes) {
+	public static List<String> obterNomesClientes(List<Cliente> clientes) {
 		List<String> nomeListOrdenada = clientes.stream().map(Cliente::getNomeCliente).collect(Collectors.toList());
 		nomeListOrdenada.sort((x, y) -> x.compareToIgnoreCase(y));
 		return nomeListOrdenada;
@@ -651,7 +648,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 					continue;
 				}
 				Object[] rowData = { venda.getCliente().getNomeCliente(), item.getProduto().getNomeProduto(),
-						item.getProduto().getQuantidadeVendida(), venda.getFormaPagamento().toString(), venda.getDataVendaFormatada(), 
+						item.getQuantidade(), venda.getFormaPagamento().toString(), venda.getDataVendaFormatada(), 
 						String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(item.getValorUnitario()), String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(item.getValorTotal())))};
 				model.addRow(rowData);
 			}

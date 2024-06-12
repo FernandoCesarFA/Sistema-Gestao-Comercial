@@ -1,7 +1,7 @@
 package gestaocomercial.dominio.enuns;
 
 public enum Meses {
-	JANEIRO("Faneiro", 1),
+	JANEIRO("Janeiro", 1),
 	FEVEREITO("Fevereiro", 2),
 	MARCO("Março", 3),
 	ABRIL("Abril", 4),

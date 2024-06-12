@@ -20,7 +20,6 @@ public class Item {
 	private Integer quantidade;
 	private Float valorUnitario;
 	private Float valorTotal;
-	private boolean atendido = false;
 	
 	public Long getId() {
 		return id;
@@ -54,14 +53,6 @@ public class Item {
 	public void setValorTotal(Float valorTotal) {
 		this.valorTotal = valorTotal;
 	
-	}
-
-	public boolean isAtendido() {
-		return atendido;
-	}
-
-	public void setAtendido(boolean atendido) {
-		this.atendido = atendido;
 	}
 
 	public Float getValorUnitario() {
