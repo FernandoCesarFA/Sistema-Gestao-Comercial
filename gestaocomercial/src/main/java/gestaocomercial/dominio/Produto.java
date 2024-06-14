@@ -18,9 +18,7 @@ public class Produto implements Serializable{
 	private Long id;
 	private String nomeProduto;
 	private Integer quantidadeEstoque;
-	private Integer quantidadeVendida;
-	private Float preco;
-	
+	private Double preco;
 	public Long getId() {
 		return id;
 	}
@@ -45,19 +43,11 @@ public class Produto implements Serializable{
 		this.quantidadeEstoque = quantidadeEstoque;
 	}
 	
-	public Integer getQuantidadeVendida() {
-		return quantidadeVendida;
-	}
-
-	public void setQuantidadeVendida(Integer quantidadeVendida) {
-		this.quantidadeVendida = quantidadeVendida;
-	}
-
-	public Float getPreco() {
+	public Double getPreco() {
 		return preco;
 	}
 
-	public void setPreco(Float preco) {
+	public void setPreco(Double preco) {
 		this.preco = preco;
 	}
 
@@ -65,10 +55,13 @@ public class Produto implements Serializable{
 		return serialVersionUID;
 	}
 	
-	public void setProduto(String nomeProduto, Integer quantidadeEstoque, Integer quantidadeVendida, Float preco) {
+	public void subtraiQuantidadeEmEstoque(int quantidadeVendida) {
+		quantidadeEstoque-= quantidadeVendida;
+	}
+	
+	public void setProduto(String nomeProduto, Integer quantidadeEstoque, Integer quantidadeVendida, Double preco) {
 		setNomeProduto(nomeProduto);
 		setQuantidadeEstoque(quantidadeEstoque);
-		setQuantidadeVendida(quantidadeVendida);
 		setPreco(preco);
 	}
 	

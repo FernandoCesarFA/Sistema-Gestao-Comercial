@@ -18,8 +18,8 @@ public class Item {
 	private Produto produto;
 	
 	private Integer quantidade;
-	private Float valorUnitario;
-	private Float valorTotal;
+	private Double valorUnitario;
+	private Double valorTotal;
 	
 	public Long getId() {
 		return id;
@@ -45,21 +45,21 @@ public class Item {
 		this.quantidade = quantidade;
 	}
 	
-	public Float getValorTotal() {
-		valorTotal = (Float) (produto.getPreco() * quantidade); 
+	public Double getValorTotal() {
+		valorTotal = (Double) (produto.getPreco() * quantidade); 
 		return  valorTotal;
 	}
 	
-	public void setValorTotal(Float valorTotal) {
+	public void setValorTotal(Double valorTotal) {
 		this.valorTotal = valorTotal;
 	
 	}
 
-	public Float getValorUnitario() {
+	public Double getValorUnitario() {
 		return valorUnitario;
 	}
 
-	public void setValorUnitario(Float valorUnitario) {
+	public void setValorUnitario(Double valorUnitario) {
 		this.valorUnitario = valorUnitario;
 	}
 }//Item

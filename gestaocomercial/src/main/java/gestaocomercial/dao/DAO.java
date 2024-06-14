@@ -20,22 +20,44 @@ public class DAO<T> implements AutoCloseable {
 	}//Construtor
 	
 	public void adiciona(T t) {
-		entityManager.getTransaction().begin();
-		entityManager.merge(t);
-		entityManager.getTransaction().commit();
-	}//adiciona()
-	
+	    try {
+	        entityManager.getTransaction().begin();
+	        entityManager.merge(t);
+	        entityManager.getTransaction().commit();
+	    } catch (Exception e) {
+	        if (entityManager.getTransaction().isActive()) {
+	            entityManager.getTransaction().rollback();
+	        }
+	        throw e;
+	    }
+	}
+
 	public void altera(T t) {
-		entityManager.getTransaction().begin();
-		entityManager.merge(t);
-		entityManager.getTransaction().commit();
-	}//altera()
-	
+	    try {
+	        entityManager.getTransaction().begin();
+	        entityManager.merge(t);
+	        entityManager.getTransaction().commit();
+	    } catch (Exception e) {
+	        if (entityManager.getTransaction().isActive()) {
+	            entityManager.getTransaction().rollback();
+	        }
+	        throw e;
+	    }
+	}
+
 	public void remove(T t) {
-		entityManager.getTransaction().begin();
-		entityManager.remove(entityManager.merge(t));
-		entityManager.getTransaction().commit();
-	}//remove()
+	    try {
+	        entityManager.getTransaction().begin();
+	        entityManager.remove(entityManager.merge(t));
+	        entityManager.getTransaction().commit();
+	    } catch (Exception e) {
+	        if (entityManager.getTransaction().isActive()) {
+	            entityManager.getTransaction().rollback();
+	        }
+	        throw e;
+	    }
+	}
+
 	
 	public T buscaPorId(Long id) {
 		return entityManager.find(classe, id);
@@ -47,6 +69,14 @@ public class DAO<T> implements AutoCloseable {
 		List<T> list = entityManager.createQuery(query).getResultList();
 		return list;
 	}//listaTodos()
+	
+	public EntityManager getEntityManager() {
+		return entityManager;
+	}
+
+	public void setEntityManager(EntityManager entityManager) {
+		this.entityManager = entityManager;
+	}
 
 	@Override
 	public void close() throws Exception {

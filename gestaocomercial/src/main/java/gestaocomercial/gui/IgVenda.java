@@ -8,6 +8,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,11 +57,13 @@ public class IgVenda extends JDialog implements Utilitario {
     private JTable produtosTable;
     private JTable vendasTable;
     private DefaultTableModel vendasTableModel;
-    private List<Venda> vendaAtualList = new ArrayList<Venda>();
     private List<Produto> produtoList;
+    private JLabel lblFormaPagamento;
+    private JComboBox<String> formaPagamentoComboBox;
 
  
-    public IgVenda(Component janelaPai, List<Cliente> clienteList, List<Produto> produtoList, List<Venda> vendaList, DAO<Venda> vendaDao) {
+    public IgVenda(Component janelaPai, List<Cliente> clienteList, List<Produto> produtoList, List<Venda> vendaList, 
+    			   DAO<Venda> vendaDao, DAO<Produto> produtoDao, DAO<Item> itemDao) {
         String[] clientes = IgJanelaPrincipal.obterNomesClientes(clienteList).toArray(new String[0]);
         this.produtoList = produtoList;
         
@@ -188,7 +191,7 @@ public class IgVenda extends JDialog implements Utilitario {
 
         JPanel totalPanel = new JPanel();
         totalPanel.setBackground(new Color(255, 255, 255));
-        totalPanel.setBounds(371, 27, 157, 23);
+        totalPanel.setBounds(376, 27, 152, 23);
         vendaPanel.add(totalPanel);
         totalPanel.setLayout(new BoxLayout(totalPanel, BoxLayout.X_AXIS));
 
@@ -205,7 +208,7 @@ public class IgVenda extends JDialog implements Utilitario {
 
         JPanel numeroProdutosPanel = new JPanel();
         numeroProdutosPanel.setBackground(new Color(255, 255, 255));
-        numeroProdutosPanel.setBounds(202, 27, 157, 23);
+        numeroProdutosPanel.setBounds(241, 27, 123, 23);
         vendaPanel.add(numeroProdutosPanel);
         numeroProdutosPanel.setLayout(new BoxLayout(numeroProdutosPanel, BoxLayout.X_AXIS));
 
@@ -220,6 +223,22 @@ public class IgVenda extends JDialog implements Utilitario {
         numeroProdutosLabel.setText("0");
         numeroProdutosLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
         numeroProdutosPanel.add(numeroProdutosLabel);
+        
+        lblFormaPagamento = new JLabel("Pagmento:");
+        lblFormaPagamento.setVerticalAlignment(SwingConstants.TOP);
+        lblFormaPagamento.setForeground(new Color(0, 128, 128));
+        lblFormaPagamento.setFont(new Font("SansSerif", Font.BOLD, 16));
+        lblFormaPagamento.setBounds(20, 27, 89, 21);
+        vendaPanel.add(lblFormaPagamento);
+        
+        String[] formasDePagamento = {"Dinheiro", "Cartão de Crédito", "Cartão de Débito", "Pix"};
+        formaPagamentoComboBox = new JComboBox<>(formasDePagamento);
+        formaPagamentoComboBox.setBounds(106, 29, 113, 21);
+        vendaPanel.add(formaPagamentoComboBox);
+        formaPagamentoComboBox.setSelectedIndex(0);
+        formaPagamentoComboBox.setMaximumRowCount(8);
+        formaPagamentoComboBox.setBorder(null);
+        formaPagamentoComboBox.setBackground(Color.WHITE);
 
         clienteLabel = new JLabel("Cliente");
         clienteLabel.setLabelFor(clienteComboBox);
@@ -304,7 +323,7 @@ public class IgVenda extends JDialog implements Utilitario {
             }
         });
 
-        vendaButton.addActionListener(e -> finalizarVenda(clienteList, vendaList, vendaDao));
+        vendaButton.addActionListener(e -> finalizarVenda(clienteList, vendaList, vendaDao, produtoDao, itemDao));
         cancelarButton.addActionListener(e -> dispose());
         
         setModal(true);
@@ -314,26 +333,39 @@ public class IgVenda extends JDialog implements Utilitario {
         
     }
     
-    private void finalizarVenda(List<Cliente> clienteList, List<Venda> vendaList, DAO<Venda> vendaDao) {
+    private void finalizarVenda(List<Cliente> clienteList, List<Venda> vendaList, DAO<Venda> vendaDao, DAO<Produto> produtoDAO, DAO<Item> itemDao) {
     
+    	Venda venda = new Venda();
+    	venda.setCliente(clienteList.stream().filter((c) -> c.getNomeCliente().equals((String) vendasTableModel.getValueAt(0, 0))).toList().get(0));
+    	venda.setFormaPagamento((String) formaPagamentoComboBox.getSelectedItem()); 
+    	List<Item> itemList = new ArrayList<Item>();
     	for (int i = 0; i < vendasTableModel.getRowCount(); i++) {
-    	    String cliente = (String) vendasTableModel.getValueAt(i, 0);
-    	    String produto = (String) vendasTableModel.getValueAt(i, 1);
-    	    int quantidade = (int) vendasTableModel.getValueAt(i, 2);
-    	    String precoUnitarioStr = (String) vendasTableModel.getValueAt(i, 3);
-    	    String valorTotalStr = (String) vendasTableModel.getValueAt(i, 4);
-    	    
-    	    
-    	    System.out.println("Cliente: " + cliente + ", Produto: " + produto + ", Quantidade: " + quantidade);
-    	    this.dispose();
+    		
+    		Produto produto = encontrarProdutoPorNome((String) vendasTableModel.getValueAt(i, 1));
+    		int quantidate = Integer.parseInt(vendasTableModel.getValueAt(i, 2).toString());
+    		produto.subtraiQuantidadeEmEstoque(quantidate);
+    		produtoDAO.altera(produto);
+    		
+    		itemList.add(new Item());
+    		itemList.get(i).setProduto(produto);
+    		itemList.get(i).setQuantidade(quantidate);
+    		itemList.get(i).setValorUnitario(Double.parseDouble(vendasTableModel.getValueAt(i, 3).toString().replace("R$: ", "").replace(",", ".")));
+    		itemList.get(i).setValorTotal((Double.parseDouble(vendasTableModel.getValueAt(i, 4).toString().replace("R$: ", "").replace(",", "."))));
+    	    venda.adicionarItem(itemList.get(i));
     	}
+    	for (Item item : itemList) {
+    		itemDao.adiciona(item);
+    	}
+    	venda.setDataVenda(LocalDate.now());
+    	venda.setValorVenda(itemList.stream().mapToDouble(Item::getValorTotal).sum());
+    	vendaDao.adiciona(venda);
+    	vendaList.add(venda);
+    	this.dispose();
 	}
 
 	private void removerProdutoVenda(int selectedRow) {
         ((DefaultTableModel) vendasTable.getModel()).removeRow(selectedRow);
-        atualizarTotais();
-        atualizarTotalProdutos();
-        desabilitarCliente();
+        atualizar();
     }
 
     private void adicionarProdutoAVenda(int row) {
@@ -361,11 +393,7 @@ public class IgVenda extends JDialog implements Utilitario {
 
         vendasTableModel.addRow(new Object[] {cliente, nomeProduto, quantidade, String.format("R$: %s", DECIMAL_FORMAT.format(precoUnitario)), String.format("R$: %s", DECIMAL_FORMAT.format(precoUnitario * quantidade))});
         
-       
-        
-        atualizarTotais();
-        atualizarTotalProdutos();
-        desabilitarCliente();
+        atualizar();
     }
     
     private void desabilitarCliente() {
@@ -374,6 +402,12 @@ public class IgVenda extends JDialog implements Utilitario {
 	     }else {
 	    	 clienteComboBox.setEnabled(true);
 	     }
+    }
+    
+    public void atualizar() {
+    	atualizarTotais();
+        atualizarTotalProdutos();
+        desabilitarCliente();
     }
     
     private void atualizarValorTotal(int row) {
@@ -401,7 +435,7 @@ public class IgVenda extends JDialog implements Utilitario {
     }
 
     private Produto encontrarProdutoPorNome(String nomeProduto) {
-        for (Produto produto : produtoList) {
+    	for (Produto produto : produtoList) {
             if (produto.getNomeProduto().equalsIgnoreCase(nomeProduto)) {
                 return produto;
             }

@@ -140,7 +140,7 @@ public class IgCadastroProduto extends JDialog {
         }
         try {
             precoTextField.commitEdit();
-            produto.setPreco(((Number) precoTextField.getValue()).floatValue());
+            produto.setPreco(((Number) precoTextField.getValue()).doubleValue());
         }
         catch (ParseException e) {
             mensagemDeErro.append("Formato de preço inválido").append("\n");

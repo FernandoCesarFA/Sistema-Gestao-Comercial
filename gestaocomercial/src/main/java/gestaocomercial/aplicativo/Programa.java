@@ -2,6 +2,7 @@ package gestaocomercial.aplicativo;
 
 import java.awt.Color;
 import java.util.Locale;
+
 import javax.persistence.PersistenceException;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollBar;
@@ -9,8 +10,10 @@ import javax.swing.UIManager;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
+
 import gestaocomercial.dao.DAO;
 import gestaocomercial.dominio.Cliente;
+import gestaocomercial.dominio.Item;
 import gestaocomercial.dominio.Produto;
 import gestaocomercial.dominio.Venda;
 import gestaocomercial.gui.IgJanelaPrincipal;
@@ -67,7 +70,7 @@ public class Programa {
     }
 
     private static void iniciarAplicacao() {
-        new IgJanelaPrincipal(new DAO<>(Cliente.class), new DAO<>(Produto.class), new DAO<>(Venda.class));
+        new IgJanelaPrincipal(new DAO<>(Cliente.class), new DAO<>(Produto.class), new DAO<>(Venda.class), new DAO<>(Item.class));
     }
 
     private static void exibirMensagemErro(String mensagem, Exception e) {

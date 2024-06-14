@@ -63,10 +63,11 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 	private JTable vendasTabel;
 	private IgCadastroCliente cadastroCliente = null;
 	private IgCadastroProduto cadastroProduto = null;
+	private IgVenda igVenda = null;
 	private JPanel tabelaPanel;
 	private JPanel graficoPanel;
 
-	public IgJanelaPrincipal(DAO<Cliente> clienteDAO, DAO<Produto> produtoDAO, DAO<Venda> vendaDAO) {
+	public IgJanelaPrincipal(DAO<Cliente> clienteDAO, DAO<Produto> produtoDAO, DAO<Venda> vendaDAO, DAO<Item> itemDAO) {
 		clienteList = clienteDAO.listaTodos();
 		produtoList = produtoDAO.listaTodos();
 		vendaList = vendaDAO.listaTodos();
@@ -202,7 +203,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		buttonCadastrarProduto.setBackground(Color.WHITE);
 
 		buttonVenda = new JButton("Realizar Venda...");
-		
+
 		buttonVenda.setMnemonic(KeyEvent.VK_V);
 		buttonVenda.setFont(new Font("SansSerif", Font.PLAIN, 11));
 		buttonVenda.setBackground(Color.WHITE);
@@ -358,13 +359,25 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 
 		// Atualiza a tabela com o cliente selecionado
 		comboBoxCliente.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
-		
+
 		// Atualiza a tabelo com o produto selecionado
 		comboBoxProduto.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
-		
+
 		// Abre a GUI reponsável pela a venda
-		buttonVenda.addActionListener((e) -> new IgVenda(this, clienteList, produtoList, vendaList, vendaDAO));
-		
+		buttonVenda.addActionListener((e) -> {
+			igVenda = new IgVenda(this, clienteList, produtoList, vendaList, vendaDAO,produtoDAO, itemDAO);
+
+			// Adiciona um ouvinte de eventos à janela de cadastro de produto
+			igVenda.addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosed(WindowEvent e) {
+					// Este método será chamado quando a janela for fechada
+					atualizarComboBoxProduto();
+					atualizarComponentes();
+				}
+			});
+		});
+
 		// Atualiza os componentes quando a janela volta para o foco.
 		addFocusListener(new FocusAdapter() {
 			@Override
@@ -413,16 +426,16 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 				.setModel(new DefaultComboBoxModel<>(convertListToArrayWithTodos(obterNomesProdutos(produtoList))));
 		comboBoxProduto.setSelectedIndex(produtoList.size());
 	}
-	
+
 	private void graficoEmBarras() {
 		if (graficoPanel.getComponentCount() > 0) {
 			graficoPanel.remove(0);
 		}
-		graficoPanel.add(IgGraficoBarras.gerarGraficoBarras(vendaList, ""));
+		graficoPanel.add(IgGraficoBarras.gerarGraficoBarras(vendaList, "Produtos Mais Vendidos"));
 		tabelaPanel.revalidate();
 		tabelaPanel.repaint();
-	}//graficoEmBarras()
-	
+	}// graficoEmBarras()
+
 	private static String[] convertListToArrayWithTodos(List<String> list) {
 		// Criar um array com uma posição extra
 		String[] array = list.toArray(new String[0]);
@@ -473,31 +486,37 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		atualizarEstadoBotoesVendaERelatorio();
 		atualizarLabels();
 		atualizarTabela(vendasTabel, vendaList);
-		
+
 		List<Venda> vendaFiltradaList = vendaList;
-		
+
 		if (!comboBoxMes.getSelectedItem().toString().equals("Todos")) {
-			vendaFiltradaList = vendaFiltradaList.stream().filter((v) -> v.getDataVenda().getMonthValue() == Meses.obterValorPorAbreviacao(comboBoxMes.getSelectedItem().toString())).collect(Collectors.toList());
+			vendaFiltradaList = vendaFiltradaList.stream()
+					.filter((v) -> v.getDataVenda().getMonthValue() == Meses
+							.obterValorPorAbreviacao(comboBoxMes.getSelectedItem().toString()))
+					.collect(Collectors.toList());
 		}
-		
+
 		if (!comboBoxCliente.getSelectedItem().toString().equals("Todos")) {
-			vendaFiltradaList = vendaFiltradaList.stream().filter((v) -> v.getCliente().getNomeCliente().equals(comboBoxCliente.getSelectedItem().toString())).collect(Collectors.toList());
+			vendaFiltradaList = vendaFiltradaList.stream()
+					.filter((v) -> v.getCliente().getNomeCliente().equals(comboBoxCliente.getSelectedItem().toString()))
+					.collect(Collectors.toList());
 		}
-		
+
 		if (!comboBoxProduto.getSelectedItem().toString().equals("Todos")) {
-		    vendaFiltradaList = vendaFiltradaList.stream()
-		        .filter(v -> v.getItemList().stream().anyMatch(p -> p.getProduto().getNomeProduto().equals(comboBoxProduto.getSelectedItem().toString())))
-		        .collect(Collectors.toList());
+			vendaFiltradaList = vendaFiltradaList.stream()
+					.filter(v -> v.getItemList().stream().anyMatch(
+							p -> p.getProduto().getNomeProduto().equals(comboBoxProduto.getSelectedItem().toString())))
+					.collect(Collectors.toList());
 		}
-		
+
 		graficoEmBarras();
-		
+
 		// Remover o JScrollPane antigo da tabelaPanel
 		tabelaPanel.remove(0);
-		
+
 		// Adicionar o novo JScrollPane à tabelaPanel
 		tabelaPanel.add(atualizarTabela(vendasTabel, vendaFiltradaList));
-				
+
 		// Atualizar a interface
 		tabelaPanel.revalidate();
 		tabelaPanel.repaint();
@@ -586,8 +605,8 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 
 	private JTable criarTabela() {
 		// Criar a tabela com o modelo criado
-		JTable tabela = new JTable(new DefaultTableModel(new Object[][] {},
-				new String[] { "Cliente", "Produto", "Quantidade", "Pagamento", "Data", "Valor Unitario", "Valor Total"})) {
+		JTable tabela = new JTable(new DefaultTableModel(new Object[][] {}, new String[] { "Cliente", "Produto",
+				"Quantidade", "Pagamento", "Data", "Valor Unitário", "Valor Total" })) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -603,17 +622,9 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		// Configurar o estilo da tabela
 		tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tabela.setFillsViewportHeight(true);
-
-		// Definir cor de fundo da tabela
 		tabela.setBackground(Color.WHITE);
-
-		// Remover sombra da linha quando uma célula é selecionada
 		tabela.setRowSelectionAllowed(true);
-
-		// Definir cor de fundo do cabeçalho da tabela
 		tabela.getTableHeader().setBackground(Color.WHITE);
-
-		// Adicionar bordas entre as colunas e linhas da tabela
 		tabela.setShowGrid(true);
 		tabela.setGridColor(Color.LIGHT_GRAY);
 
@@ -637,27 +648,36 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 
 	private JScrollPane atualizarTabela(JTable tabelaVendas, List<Venda> vendaList) {
 		DefaultTableModel model = (DefaultTableModel) tabelaVendas.getModel();
-		
-		 vendaList.sort((v, v2) -> v2.getDataVenda().compareTo(v.getDataVenda()));
-		
+
+		// Ordenar lista de vendas por data (do mais recente para o mais antigo)
+		vendaList.sort((v1, v2) -> v2.getDataVenda().compareTo(v1.getDataVenda()));
+
 		// Limpar dados existentes da tabela
 		model.setRowCount(0);
 
+		// Preencher a tabela com os dados das vendas
 		for (Venda venda : vendaList) {
 			for (Item item : venda.getItemList()) {
-				if (!comboBoxProduto.getSelectedItem().toString().equals("Todos") && !item.getProduto().getNomeProduto().equals(comboBoxProduto.getSelectedItem().toString())) {
+				// Verificar se um produto específico foi selecionado no ComboBox de produtos
+				if (!comboBoxProduto.getSelectedItem().toString().equals("Todos")
+						&& !item.getProduto().getNomeProduto().equals(comboBoxProduto.getSelectedItem().toString())) {
 					continue;
 				}
+
+				// Formatar os valores monetários
+				String valorUnitarioFormatado = String.format("R$ %.2f", item.getValorUnitario());
+				String valorTotalFormatado = String.format("R$ %.2f", item.getValorTotal());
+
+				// Adicionar linha na tabela
 				Object[] rowData = { venda.getCliente().getNomeCliente(), item.getProduto().getNomeProduto(),
-						item.getQuantidade(), venda.getFormaPagamento().toString(), venda.getDataVendaFormatada(), 
-						String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(item.getValorUnitario()), String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(item.getValorTotal())))};
+						item.getQuantidade(), venda.getFormaPagamento().toString(), venda.getDataVendaFormatada(),
+						valorUnitarioFormatado, valorTotalFormatado };
 				model.addRow(rowData);
 			}
 		}
 
-		// Criar um JScrollPane para permitir a rolagem da tabela
+		// Criar JScrollPane para permitir a rolagem da tabela
 		JScrollPane scrollPane = new JScrollPane(tabelaVendas);
 		return scrollPane;
 	}
-
 }
