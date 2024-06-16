@@ -34,12 +34,14 @@ public class IgCadastroCliente extends JDialog {
     private JTextField telefoneTextField;
     private JTextArea enderecoTextArea;
     private DAO<Cliente> clienteDao;
+    private List<Cliente> clienteList;
 
     /**
      * Create the dialog.
      */
     public IgCadastroCliente(Component janelaPai, DAO<Cliente> clienteDao, List<Cliente> clienteList) {
         this.clienteDao = clienteDao;
+        this.clienteList = clienteList;
 
         setBounds(100, 100, 339, 317);
         getContentPane().setLayout(new BorderLayout());
@@ -141,7 +143,7 @@ public class IgCadastroCliente extends JDialog {
         });
 
         // Cadastra
-        cadastrarButton.addActionListener((e) -> cadastrarCliente(clienteList));
+        cadastrarButton.addActionListener((e) -> cadastrarCliente());
 
         setModal(true);
         setResizable(false);
@@ -149,14 +151,11 @@ public class IgCadastroCliente extends JDialog {
         setVisible(true);
     }
 
-    private void cadastrarCliente(List<Cliente> clienteList) {
-        var mensagemDeErro = new StringBuilder();
+    private void cadastrarCliente() {
+        StringBuilder mensagemDeErro = new StringBuilder();
         Cliente cliente = new Cliente();
 
         try {
-            if (!clienteList.stream().filter((c) -> c.getDocumento().equals(cpfTextField.getText())).toList().isEmpty()) {
-                throw new IllegalArgumentException("CPF Já Cadastrado");
-            }
             cliente.setDocumento(cpfTextField.getText());
         } catch (Exception e) {
             mensagemDeErro.append(e.getMessage()).append("\n");
@@ -182,12 +181,17 @@ public class IgCadastroCliente extends JDialog {
             mensagemDeErro.append(e.getMessage()).append("\n");
         }
 
-        if (mensagemDeErro.isEmpty()) {
-            clienteDao.adiciona(cliente);
-            clienteList.add(cliente);
-            dispose();
+        if (mensagemDeErro.length() == 0) {
+            try {
+                Long idCliente = clienteDao.adicionaRetornaId(cliente);
+                cliente.setId(idCliente); // Definindo o ID retornado no cliente
+                clienteList.add(cliente); // Adicionando o cliente à lista com o ID definido
+                dispose(); // Fechando a janela de cadastro
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Erro ao cadastrar cliente: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            }
         } else {
-            JOptionPane.showMessageDialog(this, mensagemDeErro.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, mensagemDeErro.toString(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
