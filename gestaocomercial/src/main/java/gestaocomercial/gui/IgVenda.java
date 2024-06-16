@@ -334,34 +334,40 @@ public class IgVenda extends JDialog implements Utilitario {
     }
     
     private void finalizarVenda(List<Cliente> clienteList, List<Venda> vendaList, DAO<Venda> vendaDao, DAO<Produto> produtoDAO, DAO<Item> itemDao) {
-    
-    	Venda venda = new Venda();
-    	venda.setCliente(clienteList.stream().filter((c) -> c.getNomeCliente().equals((String) vendasTableModel.getValueAt(0, 0))).toList().get(0));
-    	venda.setFormaPagamento((String) formaPagamentoComboBox.getSelectedItem()); 
-    	List<Item> itemList = new ArrayList<Item>();
-    	for (int i = 0; i < vendasTableModel.getRowCount(); i++) {
-    		
-    		Produto produto = encontrarProdutoPorNome((String) vendasTableModel.getValueAt(i, 1));
-    		int quantidate = Integer.parseInt(vendasTableModel.getValueAt(i, 2).toString());
-    		produto.subtraiQuantidadeEmEstoque(quantidate);
-    		produtoDAO.altera(produto);
-    		
-    		itemList.add(new Item());
-    		itemList.get(i).setProduto(produto);
-    		itemList.get(i).setQuantidade(quantidate);
-    		itemList.get(i).setValorUnitario(Double.parseDouble(vendasTableModel.getValueAt(i, 3).toString().replace("R$: ", "").replace(",", ".")));
-    		itemList.get(i).setValorTotal((Double.parseDouble(vendasTableModel.getValueAt(i, 4).toString().replace("R$: ", "").replace(",", "."))));
-    	    venda.adicionarItem(itemList.get(i));
-    	}
-    	for (Item item : itemList) {
-    		itemDao.adiciona(item);
-    	}
-    	venda.setDataVenda(LocalDate.now());
-    	venda.setValorVenda(itemList.stream().mapToDouble(Item::getValorTotal).sum());
-    	vendaDao.adiciona(venda);
-    	vendaList.add(venda);
-    	this.dispose();
-	}
+        
+        Venda venda = new Venda();
+        venda.setCliente(clienteList.stream().filter((c) -> c.getNomeCliente().equals((String) vendasTableModel.getValueAt(0, 0))).toList().get(0));
+        venda.setFormaPagamento((String) formaPagamentoComboBox.getSelectedItem()); 
+        List<Item> itemList = new ArrayList<Item>();
+
+        for (int i = 0; i < vendasTableModel.getRowCount(); i++) {
+            
+            Produto produto = encontrarProdutoPorNome((String) vendasTableModel.getValueAt(i, 1));
+            int quantidade = Integer.parseInt(vendasTableModel.getValueAt(i, 2).toString());
+            produto.subtraiQuantidadeEmEstoque(quantidade);
+            produtoDAO.altera(produto);
+            
+            Item item = new Item();
+            item.setProduto(produto);
+            item.setQuantidade(quantidade);
+            item.setValorUnitario(Double.parseDouble(vendasTableModel.getValueAt(i, 3).toString().replace("R$: ", "").replace(",", ".")));
+            item.setValorTotal(Double.parseDouble(vendasTableModel.getValueAt(i, 4).toString().replace("R$: ", "").replace(",", ".")));
+            venda.adicionarItem(item);
+            
+            itemList.add(item);
+        }
+
+        for (Item item : itemList) {
+            itemDao.adiciona(item);
+        }
+
+        venda.setDataVenda(LocalDate.now());
+        venda.setValorVenda(itemList.stream().mapToDouble(Item::getValorTotal).sum());
+        vendaDao.adiciona(venda);
+        vendaList.add(venda);
+        this.dispose();
+    }
+
 
 	private void removerProdutoVenda(int selectedRow) {
         ((DefaultTableModel) vendasTable.getModel()).removeRow(selectedRow);
