@@ -56,7 +56,7 @@ public class Produto implements Serializable{
 	}
 	
 	public void subtraiQuantidadeEmEstoque(int quantidadeVendida) {
-		quantidadeEstoque-= quantidadeVendida;
+		this.quantidadeEstoque-= quantidadeVendida;
 	}
 	
 	public void setProduto(String nomeProduto, Integer quantidadeEstoque, Integer quantidadeVendida, Double preco) {

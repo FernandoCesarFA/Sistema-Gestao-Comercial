@@ -334,39 +334,54 @@ public class IgVenda extends JDialog implements Utilitario {
     }
     
     private void finalizarVenda(List<Cliente> clienteList, List<Venda> vendaList, DAO<Venda> vendaDao, DAO<Produto> produtoDAO, DAO<Item> itemDao) {
-        
+        // Inicializa a venda
         Venda venda = new Venda();
-        venda.setCliente(clienteList.stream().filter((c) -> c.getNomeCliente().equals((String) vendasTableModel.getValueAt(0, 0))).toList().get(0));
-        venda.setFormaPagamento((String) formaPagamentoComboBox.getSelectedItem()); 
-        List<Item> itemList = new ArrayList<Item>();
+        venda.setCliente(clienteList.stream()
+                .filter(c -> c.getNomeCliente().equals((String) vendasTableModel.getValueAt(0, 0)))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado")));
+        venda.setFormaPagamento((String) formaPagamentoComboBox.getSelectedItem());
+
+        // Cria uma lista de itens
+        List<Item> itemList = new ArrayList<>();
 
         for (int i = 0; i < vendasTableModel.getRowCount(); i++) {
-            
+        	// Encontra o produto existente
             Produto produto = encontrarProdutoPorNome((String) vendasTableModel.getValueAt(i, 1));
+
             int quantidade = Integer.parseInt(vendasTableModel.getValueAt(i, 2).toString());
+            
+            // Atualiza a quantidade de estoque do produto e persiste o produto
             produto.subtraiQuantidadeEmEstoque(quantidade);
             produtoDAO.altera(produto);
-            
+
+            // Cria o item
             Item item = new Item();
             item.setProduto(produto);
             item.setQuantidade(quantidade);
             item.setValorUnitario(Double.parseDouble(vendasTableModel.getValueAt(i, 3).toString().replace("R$: ", "").replace(",", ".")));
             item.setValorTotal(Double.parseDouble(vendasTableModel.getValueAt(i, 4).toString().replace("R$: ", "").replace(",", ".")));
-            venda.adicionarItem(item);
-            
+
             itemList.add(item);
         }
 
-        for (Item item : itemList) {
-            itemDao.adiciona(item);
-        }
-
+        // Define os atributos restantes da venda e persiste a venda
         venda.setDataVenda(LocalDate.now());
         venda.setValorVenda(itemList.stream().mapToDouble(Item::getValorTotal).sum());
-        vendaDao.adiciona(venda);
+        venda.setItemList(itemList);
+        
+        vendaDao.adiciona(venda); // Salva a venda no banco de dados
+        
+        // Persistir os itens depois da venda para garantir consistência
+        for (Item item : itemList) {
+        	itemDao.adiciona(item); // Salva o item no banco de dados
+        }
+
         vendaList.add(venda);
-        this.dispose();
+        this.dispose(); // Fecha a janela de venda
     }
+
+
 
 
 	private void removerProdutoVenda(int selectedRow) {

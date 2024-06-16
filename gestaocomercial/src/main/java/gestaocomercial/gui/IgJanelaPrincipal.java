@@ -66,6 +66,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 	private IgVenda igVenda = null;
 	private JPanel tabelaPanel;
 	private JPanel graficoPanel;
+	private JComboBox<String> comboBoxFiltrar;
 
 	public IgJanelaPrincipal(DAO<Cliente> clienteDAO, DAO<Produto> produtoDAO, DAO<Venda> vendaDAO, DAO<Item> itemDAO) {
 		clienteList = clienteDAO.listaTodos();
@@ -81,6 +82,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		// Convertendo listas para arrays e adicionando "Todos"
 		String[] clientes = convertListToArrayWithTodos(nomesClientes);
 		String[] produtos = convertListToArrayWithTodos(nomesProdutos);
+		String[] graficoFiltro = {"Mais Vendidos", "Menos Vendidos", "Maior Estoque", "Menor Estoque"};
 
 		setIconImage(Toolkit.getDefaultToolkit()
 				.getImage(IgJanelaPrincipal.class.getResource("/gestaocomercial/gui/imagens/comprasIcon.png")));
@@ -240,7 +242,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		getContentPane().add(centralPanel);
 
 		graficoPanel = new JPanel();
-		graficoPanel.setBounds(747, 42, 424, 304);
+		graficoPanel.setBounds(748, 55, 424, 320);
 		centralPanel.add(graficoPanel);
 		graficoPanel.setLayout(new BorderLayout(0, 0));
 
@@ -320,6 +322,23 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		vendasTabel = criarTabela();
 		tabelaPanel.add(vendasTabel);
 		tabelaPanel.add(criarTabelaVendas(vendaList));
+		
+		JPanel panelFiltrarGrafico = new JPanel();
+		panelFiltrarGrafico.setBackground(new Color(255, 255, 255));
+		panelFiltrarGrafico.setBounds(881, 13, 291, 30);
+		centralPanel.add(panelFiltrarGrafico);
+		
+		JLabel filtrarLabel = new JLabel("Filtrar Gráfico:");
+		filtrarLabel.setDisplayedMnemonic(KeyEvent.VK_D);
+		panelFiltrarGrafico.add(filtrarLabel);
+		
+		comboBoxFiltrar = new JComboBox<String>();
+		comboBoxFiltrar.setModel(new DefaultComboBoxModel<>(graficoFiltro));
+		comboBoxFiltrar.setSelectedIndex(0);
+		comboBoxFiltrar.setMaximumRowCount(4);
+		comboBoxFiltrar.setBorder(null);
+		comboBoxFiltrar.setBackground(Color.WHITE);
+		panelFiltrarGrafico.add(comboBoxFiltrar);
 
 		// Atualiza a GUI com os dados
 		atualizarComponentes();
@@ -362,6 +381,9 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 
 		// Atualiza a tabelo com o produto selecionado
 		comboBoxProduto.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
+		
+		// Atualiza o grafico de acordo com o filtro
+		comboBoxFiltrar.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
 
 		// Abre a GUI reponsável pela a venda
 		buttonVenda.addActionListener((e) -> {
@@ -431,7 +453,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		if (graficoPanel.getComponentCount() > 0) {
 			graficoPanel.remove(0);
 		}
-		graficoPanel.add(IgGraficoBarras.gerarGraficoBarras(vendaList, "Produtos Mais Vendidos"));
+		graficoPanel.add(IgGraficoBarras.gerarGraficoBarras(vendaList, comboBoxFiltrar.getSelectedIndex()));
 		tabelaPanel.revalidate();
 		tabelaPanel.repaint();
 	}// graficoEmBarras()

@@ -4,10 +4,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -37,7 +39,7 @@ import gestaocomercial.dominio.Venda;
 
 public class IgGraficoBarras {
 
-    public static JPanel gerarGraficoBarras(List<Venda> vendaList, String titulo) {
+    public static JPanel gerarGraficoBarras(List<Venda> vendaList, int filtro) {
         if (vendaList.isEmpty()) {
             final JPanel contentPanel = new JPanel();
             contentPanel.setBackground(new Color(255, 255, 255));
@@ -66,18 +68,50 @@ public class IgGraficoBarras {
             return contentPanel;
         }
 
-        // Obter os produtos mais vendidos
-        List<Produto> produtosMaisVendidos = produtosMaisVendidos(vendaList);
+        List<Produto> produtoList = new ArrayList<>();
+        String titulo = "Produtos";
+
+        switch (filtro) {
+            case 0: {
+                produtoList = produtosMaisVendidos(vendaList);
+                titulo = "Mais Vendidos";
+                break;
+            }
+            case 1: {
+                produtoList = produtosMaisVendidos(vendaList);
+                Collections.reverse(produtoList);
+                titulo = "Menos Vendidos";
+                break;
+            }
+            case 2: {
+                produtoList = produtosQuantidadeEstoque(vendaList);
+                titulo = "Maior Estoque";
+                break;
+            }
+            case 3: {
+                produtoList = produtosQuantidadeEstoque(vendaList);
+                Collections.reverse(produtoList);
+                titulo = "Menor Estoque";
+                break;
+            }
+            default:
+                break;
+        }
 
         // Criação do conjunto de dados
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
-        // Adicionar os produtos mais vendidos ao conjunto de dados
-        int numProdutos = Math.min(8, produtosMaisVendidos.size()); // Limitar a 8 produtos no gráfico
+        int numProdutos = Math.min(8, produtoList.size()); // Limitar a 8 produtos no gráfico
         for (int i = 0; i < numProdutos; i++) {
-            Produto produto = produtosMaisVendidos.get(i);
-            int quantidadeTotal = calcularQuantidadeTotalProduto(produto, vendaList);
-            dataset.addValue(quantidadeTotal, produto.getNomeProduto(), "Vendas");
+            Produto produto = produtoList.get(i);
+            int quantidade = 0;
+            if (filtro == 2 || filtro == 3) {
+            	quantidade = produto.getQuantidadeEstoque();
+            }
+            else {
+            	quantidade = calcularQuantidadeTotalProduto(produto, vendaList);
+            }
+            dataset.addValue(quantidade, produto.getNomeProduto(), "Vendas");
         }
 
         Locale.setDefault(Locale.US);
@@ -85,7 +119,7 @@ public class IgGraficoBarras {
         // Criação do gráfico de barras
         JFreeChart chart = ChartFactory.createBarChart("", // Título do gráfico
                 titulo, // Rótulo do eixo x
-                "Quantidade", // Rótulo do eixo y (alterado para "Quantidade")
+                "Quantidade", // Rótulo do eixo y
                 dataset, // Dados
                 PlotOrientation.VERTICAL, true, false, false);
 
@@ -116,12 +150,10 @@ public class IgGraficoBarras {
 
         // Personalização do rótulo do eixo y com formato personalizado (opcional)
         NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-        // Personalização do rótulo do eixo y com formato personalizado
         double maxValue = rangeAxis.getUpperBound(); // Valor máximo atual do eixo y
         rangeAxis.setRange(0, maxValue + 2); // Ajuste da escala com 10 unidades a mais
 
-        // Personalização dos rótulos dos valores acima das barras com formato
-        // personalizado
+        // Personalização dos rótulos dos valores acima das barras com formato personalizado
         renderer.setDefaultItemLabelGenerator(new StandardCategoryItemLabelGenerator());
         renderer.setDefaultItemLabelsVisible(true);
 
@@ -170,7 +202,7 @@ public class IgGraficoBarras {
                 return Color.BLACK; // Caso geral
         }
     }
-    
+
     public static List<Produto> produtosMaisVendidos(List<Venda> vendaList) {
         // Map para armazenar a quantidade total vendida de cada produto
         Map<Produto, Integer> quantidadePorProduto = new HashMap<>();
@@ -198,5 +230,16 @@ public class IgGraficoBarras {
         }
 
         return produtosOrdenados;
+    }
+
+    public static List<Produto> produtosQuantidadeEstoque(List<Venda> vendaList) {
+        List<Produto> produtoList = vendaList.stream()
+                .flatMap(v -> v.getItemList().stream())
+                .map(Item::getProduto)
+                .distinct()
+                .collect(Collectors.toList());
+
+        produtoList.sort((p1, p2) -> p2.getQuantidadeEstoque().compareTo(p1.getQuantidadeEstoque()));
+        return produtoList;
     }
 }
