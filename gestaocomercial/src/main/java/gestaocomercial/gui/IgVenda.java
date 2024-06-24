@@ -43,7 +43,6 @@ public class IgVenda extends JDialog implements Utilitario {
 
     private static final long serialVersionUID = 1L;
     private final JPanel contentPanel = new JPanel();
-    private JTextField buscarTextField;
     private JLabel clienteLabel;
     private JComboBox<String> clienteComboBox;
     private JLabel lblBuscar;
@@ -60,12 +59,15 @@ public class IgVenda extends JDialog implements Utilitario {
     private List<Produto> produtoList;
     private JLabel lblFormaPagamento;
     private JComboBox<String> formaPagamentoComboBox;
+    private Component janelaPai;
 
  
     public IgVenda(Component janelaPai, List<Cliente> clienteList, List<Produto> produtoList, List<Venda> vendaList, 
     			   DAO<Venda> vendaDao, DAO<Produto> produtoDao, DAO<Item> itemDao) {
-        String[] clientes = IgJanelaPrincipal.obterNomesClientes(clienteList).toArray(new String[0]);
+        
+    	String[] clientes = IgJanelaPrincipal.obterNomesClientes(clienteList).toArray(new String[0]);
         this.produtoList = produtoList;
+        this.janelaPai = janelaPai;
         
         setBounds(100, 100, 1154, 521);
         getContentPane().setLayout(new BorderLayout());
@@ -93,7 +95,7 @@ public class IgVenda extends JDialog implements Utilitario {
         lblBuscar.setBounds(16, 27, 49, 16);
         produtosPanel.add(lblBuscar);
 
-        buscarTextField = new JTextField();
+        JTextField buscarTextField = new JTextField();
         buscarTextField.setColumns(10);
         buscarTextField.setBounds(63, 21, 176, 24);
         produtosPanel.add(buscarTextField);
@@ -269,7 +271,7 @@ public class IgVenda extends JDialog implements Utilitario {
         cancelarButton.setBounds(1031, 436, 90, 28);
         panel.add(cancelarButton);
 
-        buscarTextField.addActionListener((e) -> pesquisarProduto(produtosTable));
+        buscarTextField.addActionListener((e) ->IgProduto.pesquisarProduto(this, produtosTable, buscarTextField));
 
         // Adicionar evento de tecla para a tabela de produtos
         produtosTable.addKeyListener(new KeyAdapter() {
@@ -310,18 +312,18 @@ public class IgVenda extends JDialog implements Utilitario {
             }
         });
 
-        // Adicionar evento de mouse para a tabela de vendas (duplo clique para remover)
-        vendasTable.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    int selectedRow = vendasTable.getSelectedRow();
-                    if (selectedRow != -1) {
-                        removerProdutoVenda(selectedRow);
-                    }
-                }
-            }
-        });
+//        // Adicionar evento de mouse para a tabela de vendas (duplo clique para remover)
+//        vendasTable.addMouseListener(new MouseAdapter() {
+//            @Override
+//            public void mouseClicked(MouseEvent e) {
+//                if (e.getClickCount() == 2) {
+//                    int selectedRow = vendasTable.getSelectedRow();
+//                    if (selectedRow != -1) {
+//                        removerProdutoVenda(selectedRow);
+//                    }
+//                }
+//            }
+//        });
 
         vendaButton.addActionListener(e -> finalizarVenda(clienteList, vendaList, vendaDao, produtoDao, itemDao));
         cancelarButton.addActionListener(e -> dispose());
@@ -334,7 +336,7 @@ public class IgVenda extends JDialog implements Utilitario {
     }
     
     private void finalizarVenda(List<Cliente> clienteList, List<Venda> vendaList, DAO<Venda> vendaDao, DAO<Produto> produtoDAO, DAO<Item> itemDao) {
-        try {
+    	try {
             // Inicializa a venda
             Venda venda = new Venda();
             venda.setCliente(clienteList.stream()
@@ -382,18 +384,18 @@ public class IgVenda extends JDialog implements Utilitario {
             // Persiste os itens da venda
             for (Item item : itemList) {
                 itemDao.adiciona(item);
-                
             }
 
             // Adiciona a venda à lista de vendas
             vendaList.add(venda);
-
             // Fecha a janela de venda
             this.dispose();
-
-            JOptionPane.showMessageDialog(this, "Venda realizada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            janelaPai.requestFocus();
+            
+            
+            JOptionPane.showMessageDialog(janelaPai, "Venda realizada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro ao finalizar venda: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(janelaPai, "Erro ao finalizar venda: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -497,33 +499,5 @@ public class IgVenda extends JDialog implements Utilitario {
             }
         }
         valorTotalLabel.setText(String.format(" R$: %s", DECIMAL_FORMAT.format(valorTotal)));
-    }
-
-    /**
-     * Realiza a pesquisa produto com base no nome.
-     *
-     * @param produtosTable JTable com a lista de produtos.
-     */
-    private void pesquisarProduto(JTable produtosTable) {
-        String textoBusca = buscarTextField.getText().trim();
-        if (textoBusca.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor, insira um nome de produto para buscar.", "Pesquisa Produto", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int numeroDeLinhas = produtosTable.getRowCount();
-        for (int i = 0; i < numeroDeLinhas; i++) {
-            Object objeto = produtosTable.getValueAt(i, 0);
-            if (objeto != null) {
-                if (objeto.toString().equalsIgnoreCase(textoBusca)) {
-                    produtosTable.requestFocus();
-                    produtosTable.changeSelection(i, 0, false, false);
-                    produtosTable.requestFocusInWindow();
-                    return;
-                }
-            }
-        }
-
-        JOptionPane.showMessageDialog(this, "Nenhum Produto foi encontrado", "Pesquisa Produto", JOptionPane.INFORMATION_MESSAGE);
     }
 }

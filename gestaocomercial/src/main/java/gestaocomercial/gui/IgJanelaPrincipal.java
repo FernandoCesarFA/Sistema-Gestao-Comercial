@@ -384,6 +384,9 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		
 		// Atualiza o grafico de acordo com o filtro
 		comboBoxFiltrar.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
+		
+		// Abre a IgProdutos
+		buttonProdutos.addActionListener((e) -> new IgProduto(this, produtoDAO, produtoList));
 
 		// Abre a GUI reponsável pela a venda
 		buttonVenda.addActionListener((e) -> {
@@ -450,13 +453,17 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 	}
 
 	private void graficoEmBarras() {
-		if (graficoPanel.getComponentCount() > 0) {
-			graficoPanel.remove(0);
-		}
-		graficoPanel.add(IgGraficoBarras.gerarGraficoBarras(vendaList, comboBoxFiltrar.getSelectedIndex()));
-		tabelaPanel.revalidate();
-		tabelaPanel.repaint();
-	}// graficoEmBarras()
+	    // Remove all components from the panel
+	    graficoPanel.removeAll();
+
+	    // Add the new bar chart
+	    graficoPanel.add(IgGraficoBarras.gerarGraficoBarras(vendaList, comboBoxFiltrar.getSelectedIndex()));
+
+	    // Revalidate and repaint the panel to update the UI
+	    graficoPanel.revalidate();
+	    graficoPanel.repaint();
+	}
+
 
 	private static String[] convertListToArrayWithTodos(List<String> list) {
 		// Criar um array com uma posição extra
@@ -507,7 +514,6 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		atualizarEstadoBotaoProdutos();
 		atualizarEstadoBotoesVendaERelatorio();
 		atualizarLabels();
-		atualizarTabela(vendasTabel, vendaList);
 
 		List<Venda> vendaFiltradaList = vendaList;
 
@@ -537,7 +543,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		tabelaPanel.remove(0);
 
 		// Adicionar o novo JScrollPane à tabelaPanel
-		tabelaPanel.add(atualizarTabela(vendasTabel, vendaFiltradaList));
+		tabelaPanel.add(criarTabelaVendas(vendaFiltradaList));
 
 		// Atualizar a interface
 		tabelaPanel.revalidate();
@@ -672,7 +678,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		DefaultTableModel model = (DefaultTableModel) tabelaVendas.getModel();
 
 		// Ordenar lista de vendas por data (do mais recente para o mais antigo)
-		vendaList.sort((v1, v2) -> v2.getDataVenda().compareTo(v1.getDataVenda()));
+		//vendaList.sort((v1, v2) -> v2.getDataVenda().compareTo(v1.getDataVenda()));
 
 		// Limpar dados existentes da tabela
 		model.setRowCount(0);
