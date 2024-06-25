@@ -19,6 +19,7 @@ public class Produto implements Serializable{
 	private String nomeProduto;
 	private Integer quantidadeEstoque;
 	private Double preco;
+	
 	public Long getId() {
 		return id;
 	}

@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Comparator;
 import java.util.List;
@@ -73,6 +74,7 @@ public class IgProduto extends JDialog implements Utilitario {
             JLabel lblBuscar = new JLabel("Buscar:");
             lblBuscar.setDisplayedMnemonic(KeyEvent.VK_B);
             lblBuscar.setBounds(17, 38, 49, 16);
+            lblBuscar.setLabelFor(buscarTextField);
             panel.add(lblBuscar);
 
             JPanel tabelaProdutosPanel = new JPanel();
@@ -83,11 +85,6 @@ public class IgProduto extends JDialog implements Utilitario {
 
             criarTabela(tabelaProdutosPanel);
 
-            JLabel lblFiltrar = new JLabel("Filtrar:");
-            lblFiltrar.setDisplayedMnemonic(KeyEvent.VK_F);
-            lblFiltrar.setBounds(270, 38, 49, 16);
-            panel.add(lblFiltrar);
-
             filtrarComboBox = new JComboBox<String>();
             filtrarComboBox.setModel(new DefaultComboBoxModel<>(produtosFiltro));
             filtrarComboBox.setSelectedIndex(0);
@@ -97,17 +94,25 @@ public class IgProduto extends JDialog implements Utilitario {
             filtrarComboBox.setBounds(308, 37, 200, 21);
             panel.add(filtrarComboBox);
             
+            JLabel lblFiltrar = new JLabel("Filtrar:");
+            lblFiltrar.setDisplayedMnemonic(KeyEvent.VK_F);
+            lblFiltrar.setBounds(270, 38, 49, 16);
+            lblFiltrar.setLabelFor(filtrarComboBox);
+            panel.add(lblFiltrar);
+            
             voltarButton = new JButton("Voltar");
             voltarButton.setMnemonic(KeyEvent.VK_V);
             voltarButton.setBackground(Color.WHITE);
             voltarButton.setActionCommand("Cancel");
-            voltarButton.setBounds(690, 369, 90, 26);
+            voltarButton.setBounds(690, 364, 90, 26);
             panel.add(voltarButton);
         }
 
         buscarTextField.addActionListener((e) -> pesquisarProduto(this, produtosTable, buscarTextField));
         filtrarComboBox.addActionListener((e) -> filtrarTabela());
-        voltarButton.addActionListener((e) -> dispose());
+        voltarButton.addActionListener((e) -> {
+        	dispose();
+        });
         
         setModal(true);
         setResizable(false);
@@ -157,31 +162,54 @@ public class IgProduto extends JDialog implements Utilitario {
                 Produto produto = produtoList.get(row);
                 switch (columnName) {
                     case "Nome do Produto":
-                    	try {
-                    		produto.setNomeProduto((String) data);
-                    	} catch (Exception ex) {
-                    		 JOptionPane.showMessageDialog(null, "Erro ao atualizar produto: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-                    	}
+                        try {
+                            produto.setNomeProduto((String) data);
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(IgProduto.this, "Erro ao atualizar produto: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                        }
                         break;
                     case "Quantidade em Estoque":
                         try {
                             produto.setQuantidadeEstoque(Integer.parseInt(data.toString()));
                         } catch (Exception ex) {
-                        	JOptionPane.showMessageDialog(null, "Erro ao atualizar produto: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(IgProduto.this, "Erro ao atualizar produto: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
                         }
                         break;
                     case "Preço":
                         try {
                             produto.setPreco(Double.parseDouble(data.toString().replace("R$: ", "").replace(",", ".")));
                         } catch (Exception ex) {
-                        	JOptionPane.showMessageDialog(null, "Erro ao atualizar produto: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(IgProduto.this, "Erro ao atualizar produto: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
                         }
                         break;
                 }
                 try {
-                	produtoDao.altera(produto);
+                    produtoDao.altera(produto);
                 } catch (Exception ex) {
-                	JOptionPane.showMessageDialog(null, "Erro ao atualizar produto no Banco de Dados ", "Erro", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(IgProduto.this, "Erro ao atualizar produto no Banco de Dados ", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        produtosTable.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                    int selectedRow = produtosTable.getSelectedRow();
+                    if (selectedRow >= 0) {
+                        int response = JOptionPane.showConfirmDialog(IgProduto.this, "Tem certeza que deseja deletar este produto?", "Confirmação", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                        if (response == JOptionPane.YES_OPTION) {
+                            Produto produto = produtoList.get(selectedRow);
+                            try {
+                                produtoDao.remove(produto);
+                                produtoList.remove(selectedRow);
+                                atualizarTabela(produtoList);
+                                JOptionPane.showMessageDialog(IgProduto.this, "Produto deletado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                            } catch (Exception ex) {
+                                JOptionPane.showMessageDialog(IgProduto.this, "Erro ao deletar produto: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }
                 }
             }
         });

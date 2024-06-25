@@ -312,19 +312,6 @@ public class IgVenda extends JDialog implements Utilitario {
             }
         });
 
-//        // Adicionar evento de mouse para a tabela de vendas (duplo clique para remover)
-//        vendasTable.addMouseListener(new MouseAdapter() {
-//            @Override
-//            public void mouseClicked(MouseEvent e) {
-//                if (e.getClickCount() == 2) {
-//                    int selectedRow = vendasTable.getSelectedRow();
-//                    if (selectedRow != -1) {
-//                        removerProdutoVenda(selectedRow);
-//                    }
-//                }
-//            }
-//        });
-
         vendaButton.addActionListener(e -> finalizarVenda(clienteList, vendaList, vendaDao, produtoDao, itemDao));
         cancelarButton.addActionListener(e -> dispose());
         
