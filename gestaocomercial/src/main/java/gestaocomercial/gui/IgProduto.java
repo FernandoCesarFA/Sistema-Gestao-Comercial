@@ -8,6 +8,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -108,10 +109,16 @@ public class IgProduto extends JDialog implements Utilitario {
             panel.add(voltarButton);
         }
 
-        buscarTextField.addActionListener((e) -> pesquisarProduto(this, produtosTable, buscarTextField));
+        buscarTextField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                pesquisarProduto();
+            }
+        });
+
         filtrarComboBox.addActionListener((e) -> filtrarTabela());
         voltarButton.addActionListener((e) -> {
-        	dispose();
+            dispose();
         });
         
         setModal(true);
@@ -229,43 +236,32 @@ public class IgProduto extends JDialog implements Utilitario {
         }
     }
 
-    private void filtrarTabela() {
-        int selectedIndex = filtrarComboBox.getSelectedIndex();
-        switch (selectedIndex) {
-            case 0:
-                produtoList.sort(Comparator.comparing(Produto::getNomeProduto)); // Ordem Alfabética (A-Z)
-                break;
-            case 1:
-                produtoList.sort((p1, p2) -> p2.getNomeProduto().compareTo(p1.getNomeProduto())); // Ordem Alfabética (Z-A)
-                break;
-            case 2:
-                produtoList.sort((p1, p2) -> p2.getQuantidadeEstoque().compareTo(p1.getQuantidadeEstoque())); // Maior Estoque
-                break;
-            case 3:
-                produtoList.sort((p1, p2) -> p1.getQuantidadeEstoque().compareTo(p2.getQuantidadeEstoque())); // Menor Estoque
-                break;
-        }
-        atualizarTabela(produtoList);
+    private void pesquisarProduto() {
+        String searchText = buscarTextField.getText().toLowerCase();
+        List<Produto> filteredList = produtoList.stream()
+            .filter(produto -> produto.getNomeProduto().toLowerCase().contains(searchText))
+            .collect(Collectors.toList());
+        atualizarTabela(filteredList);
     }
 
-    public static void pesquisarProduto(JDialog janela, JTable produtosTable, JTextField buscarTextField) {
-        String textoBusca = buscarTextField.getText().trim();
-        if (textoBusca.isEmpty()) {
-            JOptionPane.showMessageDialog(janela, "Por favor, insira um nome de produto para buscar.", "Pesquisa Produto", JOptionPane.WARNING_MESSAGE);
-            return;
+    private void filtrarTabela() {
+        String selectedFilter = (String) filtrarComboBox.getSelectedItem();
+
+        switch (selectedFilter) {
+            case "Ordem Alfabética (A-Z)":
+                produtoList.sort(Comparator.comparing(Produto::getNomeProduto));
+                break;
+            case "Ordem Alfabética (Z-A)":
+                produtoList.sort(Comparator.comparing(Produto::getNomeProduto).reversed());
+                break;
+            case "Maior Estoque":
+                produtoList.sort(Comparator.comparingInt(Produto::getQuantidadeEstoque).reversed());
+                break;
+            case "Menor Estoque":
+                produtoList.sort(Comparator.comparingInt(Produto::getQuantidadeEstoque));
+                break;
         }
 
-        int numeroDeLinhas = produtosTable.getRowCount();
-        for (int i = 0; i < numeroDeLinhas; i++) {
-            Object objeto = produtosTable.getValueAt(i, 0);
-            if (objeto != null && objeto.toString().equalsIgnoreCase(textoBusca)) {
-                produtosTable.requestFocus();
-                produtosTable.changeSelection(i, 0, false, false);
-                produtosTable.requestFocusInWindow();
-                return;
-            }
-        }
-
-        JOptionPane.showMessageDialog(janela, "Nenhum Produto foi encontrado", "Pesquisa Produto", JOptionPane.INFORMATION_MESSAGE);
+        atualizarTabela(produtoList);
     }
 }

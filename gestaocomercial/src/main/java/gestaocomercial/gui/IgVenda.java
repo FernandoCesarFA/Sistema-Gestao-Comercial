@@ -97,7 +97,7 @@ public class IgVenda extends JDialog implements Utilitario {
 
         JTextField buscarTextField = new JTextField();
         buscarTextField.setColumns(10);
-        buscarTextField.setBounds(63, 21, 176, 24);
+        buscarTextField.setBounds(63, 27, 176, 18);
         produtosPanel.add(buscarTextField);
 
         tabelaProdutosPanel = new JPanel();
@@ -271,7 +271,7 @@ public class IgVenda extends JDialog implements Utilitario {
         cancelarButton.setBounds(1031, 436, 90, 28);
         panel.add(cancelarButton);
 
-        buscarTextField.addActionListener((e) ->IgProduto.pesquisarProduto(this, produtosTable, buscarTextField));
+        buscarTextField.addActionListener((e) -> pesquisarProduto(this, produtosTable, buscarTextField));
 
         // Adicionar evento de tecla para a tabela de produtos
         produtosTable.addKeyListener(new KeyAdapter() {
@@ -388,7 +388,26 @@ public class IgVenda extends JDialog implements Utilitario {
 
 
 
+    private void pesquisarProduto(JDialog janela, JTable produtosTable, JTextField buscarTextField) {
+        String textoBusca = buscarTextField.getText().trim();
+        if (textoBusca.isEmpty()) {
+            JOptionPane.showMessageDialog(janela, "Por favor, insira um nome de produto para buscar.", "Pesquisa Produto", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
+        int numeroDeLinhas = produtosTable.getRowCount();
+        for (int i = 0; i < numeroDeLinhas; i++) {
+            Object objeto = produtosTable.getValueAt(i, 0);
+            if (objeto != null && objeto.toString().equalsIgnoreCase(textoBusca)) {
+                produtosTable.requestFocus();
+                produtosTable.changeSelection(i, 0, false, false);
+                produtosTable.requestFocusInWindow();
+                return;
+            }
+        }
+
+        JOptionPane.showMessageDialog(janela, "Nenhum Produto foi encontrado", "Pesquisa Produto", JOptionPane.INFORMATION_MESSAGE);
+    }
 
 	private void removerProdutoVenda(int selectedRow) {
         ((DefaultTableModel) vendasTable.getModel()).removeRow(selectedRow);

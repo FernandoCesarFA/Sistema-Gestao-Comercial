@@ -65,6 +65,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 	private IgCadastroProduto cadastroProduto = null;
 	private IgVenda igVenda = null;
 	private IgProduto igProduto = null; 
+	private IgClientes igCliente = null;
 	private JPanel tabelaPanel;
 	private JPanel graficoPanel;
 	private JComboBox<String> comboBoxFiltrar;
@@ -386,6 +387,20 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		// Atualiza o grafico de acordo com o filtro
 		comboBoxFiltrar.addItemListener((itemEvent) -> atualizarComponentes(itemEvent));
 		
+		// Abre a IgClientes
+		buttonClientes.addActionListener((e) -> {
+			igCliente = new IgClientes(this, clienteDAO, clienteList);
+			// Adiciona um ouvinte de eventos à janela de cadastro de produto
+			igCliente.addWindowListener(new WindowAdapter() {
+				@Override
+				public void windowClosed(WindowEvent e) {
+					// Este método será chamado quando a janela for fechada
+					atualizarComboBoxClientes();
+					atualizarComponentes();
+				}
+			});
+		});
+		
 		// Abre a IgProdutos
 		buttonProdutos.addActionListener((e) -> {
 			
@@ -411,8 +426,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 				@Override
 				public void windowClosed(WindowEvent e) {
 					// Este método será chamado quando a janela for fechada
-					atualizarComboBoxProduto();
-					atualizarComponentes();
+					atualizarComponentes();;
 				}
 			});
 		});
