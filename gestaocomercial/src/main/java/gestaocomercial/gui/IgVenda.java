@@ -11,6 +11,7 @@ import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
@@ -55,11 +56,13 @@ public class IgVenda extends JDialog implements Utilitario {
     private JButton cancelarButton;
     private JTable produtosTable;
     private JTable vendasTable;
+    private DefaultTableModel produtoTableModel;
     private DefaultTableModel vendasTableModel;
     private List<Produto> produtoList;
     private JLabel lblFormaPagamento;
     private JComboBox<String> formaPagamentoComboBox;
     private Component janelaPai;
+    private JTextField buscarTextField;
 
  
     public IgVenda(Component janelaPai, List<Cliente> clienteList, List<Produto> produtoList, List<Venda> vendaList, 
@@ -95,11 +98,6 @@ public class IgVenda extends JDialog implements Utilitario {
         lblBuscar.setBounds(16, 27, 49, 16);
         produtosPanel.add(lblBuscar);
 
-        JTextField buscarTextField = new JTextField();
-        buscarTextField.setColumns(10);
-        buscarTextField.setBounds(63, 27, 176, 18);
-        produtosPanel.add(buscarTextField);
-
         tabelaProdutosPanel = new JPanel();
         tabelaProdutosPanel.setBackground(new Color(255, 255, 255));
         tabelaProdutosPanel.setBounds(6, 55, 522, 290);
@@ -107,7 +105,7 @@ public class IgVenda extends JDialog implements Utilitario {
         tabelaProdutosPanel.setLayout(new BorderLayout());
 
         // Criar o modelo de tabela para produtos não editáveis
-        DefaultTableModel tableModel = new DefaultTableModel(
+        produtoTableModel = new DefaultTableModel(
             new Object[][] {},
             new String[] {"Nome do Produto", "Quantidade em Estoque", "Preço"}
         ) {
@@ -121,7 +119,7 @@ public class IgVenda extends JDialog implements Utilitario {
 
         // Preencher o modelo de tabela com dados dos produtos
         for (Produto produto : produtoList) {
-            tableModel.addRow(new Object[] {
+        	produtoTableModel.addRow(new Object[] {
                 produto.getNomeProduto(),
                 produto.getQuantidadeEstoque(),
                 String.format("%s%s", "R$: ", DECIMAL_FORMAT.format(produto.getPreco()))
@@ -129,7 +127,7 @@ public class IgVenda extends JDialog implements Utilitario {
         }
 
         // Criar a tabela com o modelo de tabela
-        produtosTable = new JTable(tableModel);
+        produtosTable = new JTable(produtoTableModel);
 
         // Configurar propriedades da tabela
         produtosTable.getTableHeader().setReorderingAllowed(false);
@@ -143,6 +141,11 @@ public class IgVenda extends JDialog implements Utilitario {
 
         JScrollPane scrollPane = new JScrollPane(produtosTable);
         tabelaProdutosPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        buscarTextField = new JTextField();
+        buscarTextField.setColumns(10);
+        buscarTextField.setBounds(60, 23, 176, 24);
+        produtosPanel.add(buscarTextField);
 
         JPanel vendaPanel = new JPanel();
         vendaPanel.setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0)), "Carrinho", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -270,9 +273,15 @@ public class IgVenda extends JDialog implements Utilitario {
         cancelarButton.setActionCommand("Cancel");
         cancelarButton.setBounds(1031, 436, 90, 28);
         panel.add(cancelarButton);
+        
+        buscarTextField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                pesquisarProduto();
+            }
+        });
 
-        buscarTextField.addActionListener((e) -> pesquisarProduto(this, produtosTable, buscarTextField));
-
+        
         // Adicionar evento de tecla para a tabela de produtos
         produtosTable.addKeyListener(new KeyAdapter() {
             @Override
@@ -311,7 +320,7 @@ public class IgVenda extends JDialog implements Utilitario {
                 }
             }
         });
-
+        
         vendaButton.addActionListener(e -> finalizarVenda(clienteList, vendaList, vendaDao, produtoDao, itemDao));
         cancelarButton.addActionListener(e -> dispose());
         
@@ -322,6 +331,26 @@ public class IgVenda extends JDialog implements Utilitario {
         
     }
     
+    private void pesquisarProduto() {
+        String searchText = buscarTextField.getText().toLowerCase();
+        List<Produto> filteredList = produtoList.stream()
+            .filter(produto -> produto.getNomeProduto().toLowerCase().contains(searchText))
+            .collect(Collectors.toList());
+        atualizarTabela(filteredList);
+    }
+    
+    private void atualizarTabela(List<Produto> produtos) {
+    	produtoTableModel.setRowCount(0); // Limpar tabela
+
+        for (Produto produto : produtos) {
+        	produtoTableModel.addRow(new Object[] {
+                produto.getNomeProduto(),
+                produto.getQuantidadeEstoque(),
+                String.format("R$: %s", DECIMAL_FORMAT.format(produto.getPreco()))
+            });
+        }
+    }
+
     private void finalizarVenda(List<Cliente> clienteList, List<Venda> vendaList, DAO<Venda> vendaDao, DAO<Produto> produtoDAO, DAO<Item> itemDao) {
     	try {
             // Inicializa a venda
@@ -387,27 +416,6 @@ public class IgVenda extends JDialog implements Utilitario {
     }
 
 
-
-    private void pesquisarProduto(JDialog janela, JTable produtosTable, JTextField buscarTextField) {
-        String textoBusca = buscarTextField.getText().trim();
-        if (textoBusca.isEmpty()) {
-            JOptionPane.showMessageDialog(janela, "Por favor, insira um nome de produto para buscar.", "Pesquisa Produto", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int numeroDeLinhas = produtosTable.getRowCount();
-        for (int i = 0; i < numeroDeLinhas; i++) {
-            Object objeto = produtosTable.getValueAt(i, 0);
-            if (objeto != null && objeto.toString().equalsIgnoreCase(textoBusca)) {
-                produtosTable.requestFocus();
-                produtosTable.changeSelection(i, 0, false, false);
-                produtosTable.requestFocusInWindow();
-                return;
-            }
-        }
-
-        JOptionPane.showMessageDialog(janela, "Nenhum Produto foi encontrado", "Pesquisa Produto", JOptionPane.INFORMATION_MESSAGE);
-    }
 
 	private void removerProdutoVenda(int selectedRow) {
         ((DefaultTableModel) vendasTable.getModel()).removeRow(selectedRow);

@@ -347,7 +347,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 
 		// Abre a tela de cadastro de Clientes
 		buttonCadastrarCliente.addActionListener((e) -> {
-			cadastroCliente = new IgCadastroCliente(this, clienteDAO, clienteList);
+			cadastroCliente = new IgCadastroCliente(this, clienteDAO, this.clienteList);
 
 			// Adiciona um ouvinte de eventos à janela de cadastro de clientes
 			cadastroCliente.addWindowListener(new WindowAdapter() {
@@ -362,7 +362,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 
 		// Abre a tela de cadastro de Produto
 		buttonCadastrarProduto.addActionListener((e) -> {
-			cadastroProduto = new IgCadastroProduto(this, produtoDAO, produtoList);
+			cadastroProduto = new IgCadastroProduto(this, produtoDAO, this.produtoList);
 
 			// Adiciona um ouvinte de eventos à janela de cadastro de produto
 			cadastroProduto.addWindowListener(new WindowAdapter() {
@@ -389,7 +389,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		
 		// Abre a IgClientes
 		buttonClientes.addActionListener((e) -> {
-			igCliente = new IgClientes(this, clienteDAO, clienteList);
+			igCliente = new IgClientes(this, clienteDAO, this.clienteList);
 			// Adiciona um ouvinte de eventos à janela de cadastro de produto
 			igCliente.addWindowListener(new WindowAdapter() {
 				@Override
@@ -404,7 +404,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		// Abre a IgProdutos
 		buttonProdutos.addActionListener((e) -> {
 			
-			igProduto = new IgProduto(this, produtoDAO, produtoList);
+			igProduto = new IgProduto(this, produtoDAO, this.produtoList);
 			
 			// Adiciona um ouvinte de eventos à janela de cadastro de produto
 			igProduto.addWindowListener(new WindowAdapter() {
@@ -419,7 +419,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 
 		// Abre a GUI reponsável pela a venda
 		buttonVenda.addActionListener((e) -> {
-			igVenda = new IgVenda(this, clienteList, produtoList, vendaList, vendaDAO,produtoDAO, itemDAO);
+			igVenda = new IgVenda(this, this.clienteList, this.produtoList, this.vendaList, vendaDAO,produtoDAO, itemDAO);
 
 			// Adiciona um ouvinte de eventos à janela de cadastro de produto
 			igVenda.addWindowListener(new WindowAdapter() {
@@ -705,8 +705,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 	private JScrollPane atualizarTabela(JTable tabelaVendas, List<Venda> vendaList) {
 		DefaultTableModel model = (DefaultTableModel) tabelaVendas.getModel();
 
-		// Ordenar lista de vendas por data (do mais recente para o mais antigo)
-		//vendaList.sort((v1, v2) -> v2.getDataVenda().compareTo(v1.getDataVenda()));
+		vendaList.sort((v1, v2) -> v2.getDataVenda().compareTo(v1.getDataVenda()));
 
 		// Limpar dados existentes da tabela
 		model.setRowCount(0);

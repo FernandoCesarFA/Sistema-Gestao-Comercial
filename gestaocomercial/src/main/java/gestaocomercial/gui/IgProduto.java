@@ -118,7 +118,8 @@ public class IgProduto extends JDialog implements Utilitario {
 
         filtrarComboBox.addActionListener((e) -> filtrarTabela());
         voltarButton.addActionListener((e) -> {
-            dispose();
+            this.produtoList = produtoDao.listaTodos();
+        	dispose();
         });
         
         setModal(true);

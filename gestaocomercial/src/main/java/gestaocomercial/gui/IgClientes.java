@@ -46,7 +46,7 @@ public class IgClientes extends JDialog {
         this.clienteList.sort((c1, c2) -> c1.getNomeCliente().compareTo(c2.getNomeCliente()));
         
         getContentPane().setBackground(new Color(255, 255, 255));
-        setBounds(100, 100, 1210, 521);
+        setBounds(100, 100, 1210, 514);
         setResizable(false);
         contentPanel.setBackground(new Color(255, 255, 255));
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -118,16 +118,6 @@ public class IgClientes extends JDialog {
                 }
             }
         });
-
-        JButton btnAtualizar = new JButton("Atualizar");
-        btnAtualizar.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                atualizarTabela();
-            }
-        });
-        btnAtualizar.setBackground(new Color(255, 255, 255));
-        btnAtualizar.setBounds(976, 440, 90, 26);
-        panel.add(btnAtualizar);
         
         JButton voltarButton = new JButton("Voltar");
         voltarButton.addActionListener(new ActionListener() {
@@ -136,7 +126,7 @@ public class IgClientes extends JDialog {
             }
         });
         voltarButton.setBackground(new Color(255, 255, 255));
-        voltarButton.setBounds(1076, 440, 90, 26);
+        voltarButton.setBounds(1076, 429, 90, 26);
         panel.add(voltarButton);
         
         atualizarTabela();
