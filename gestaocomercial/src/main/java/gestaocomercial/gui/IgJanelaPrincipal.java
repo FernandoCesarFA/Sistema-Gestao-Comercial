@@ -74,7 +74,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		clienteList = clienteDAO.listaTodos();
 		produtoList = produtoDAO.listaTodos();
 		vendaList = vendaDAO.listaTodos();
-
+		
 		String[] meses = Meses.getAbreviacoes();
 
 		// Obtendo as listas de nomes de clientes e produtos
@@ -410,7 +410,6 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 			igProduto.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosed(WindowEvent e) {
-					// Este método será chamado quando a janela for fechada
 					atualizarComboBoxProduto();
 					atualizarComponentes();
 				}
@@ -485,7 +484,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 	    graficoPanel.removeAll();
 
 	    // Add the new bar chart
-	    graficoPanel.add(IgGraficoBarras.gerarGraficoBarras(vendaList, comboBoxFiltrar.getSelectedIndex()));
+	    graficoPanel.add(IgGraficoBarras.gerarGraficoBarras(this.vendaList, comboBoxFiltrar.getSelectedIndex()));
 
 	    // Revalidate and repaint the panel to update the UI
 	    graficoPanel.revalidate();
@@ -500,10 +499,11 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 
 		// Copiar os elementos do array original para o novo array
 		System.arraycopy(array, 0, resultArray, 0, array.length);
-
+		
+		
 		// Adicionar "Todos" na última posição
 		resultArray[array.length] = "Todos";
-
+		
 		return resultArray;
 	}
 
@@ -542,9 +542,13 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		atualizarEstadoBotaoProdutos();
 		atualizarEstadoBotoesVendaERelatorio();
 		atualizarLabels();
-
+		
 		List<Venda> vendaFiltradaList = vendaList;
-
+		
+		//vendaFiltradaList.forEach((c) -> System.out.println(c.getCliente().getNomeCliente()));
+		
+		System.out.println();
+		
 		if (!comboBoxMes.getSelectedItem().toString().equals("Todos")) {
 			vendaFiltradaList = vendaFiltradaList.stream()
 					.filter((v) -> v.getDataVenda().getMonthValue() == Meses
@@ -556,6 +560,7 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 			vendaFiltradaList = vendaFiltradaList.stream()
 					.filter((v) -> v.getCliente().getNomeCliente().equals(comboBoxCliente.getSelectedItem().toString()))
 					.collect(Collectors.toList());
+			vendaFiltradaList.forEach((c) -> System.out.println("Nome: " + c.getCliente().getNomeCliente()));
 		}
 
 		if (!comboBoxProduto.getSelectedItem().toString().equals("Todos")) {
@@ -563,12 +568,13 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 					.filter(v -> v.getItemList().stream().anyMatch(
 							p -> p.getProduto().getNomeProduto().equals(comboBoxProduto.getSelectedItem().toString())))
 					.collect(Collectors.toList());
+			//System.out.println(comboBoxProduto.getSelectedItem());
 		}
 
 		graficoEmBarras();
 
 		// Remover o JScrollPane antigo da tabelaPanel
-		tabelaPanel.remove(0);
+		tabelaPanel.removeAll();
 
 		// Adicionar o novo JScrollPane à tabelaPanel
 		tabelaPanel.add(criarTabelaVendas(vendaFiltradaList));

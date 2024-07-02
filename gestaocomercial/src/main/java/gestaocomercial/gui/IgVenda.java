@@ -18,6 +18,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -32,6 +33,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.MaskFormatter;
 
 import gestaocomercial.dao.DAO;
 import gestaocomercial.dominio.Cliente;
@@ -63,6 +65,8 @@ public class IgVenda extends JDialog implements Utilitario {
     private JComboBox<String> formaPagamentoComboBox;
     private Component janelaPai;
     private JTextField buscarTextField;
+    private JLabel lblDataVenda;
+    private JFormattedTextField dataVendaTextField;
 
  
     public IgVenda(Component janelaPai, List<Cliente> clienteList, List<Produto> produtoList, List<Venda> vendaList, 
@@ -193,41 +197,6 @@ public class IgVenda extends JDialog implements Utilitario {
                 }
             }
         });
-
-        JPanel totalPanel = new JPanel();
-        totalPanel.setBackground(new Color(255, 255, 255));
-        totalPanel.setBounds(376, 27, 152, 23);
-        vendaPanel.add(totalPanel);
-        totalPanel.setLayout(new BoxLayout(totalPanel, BoxLayout.X_AXIS));
-
-        JLabel lblTotal = new JLabel("Total:");
-        lblTotal.setVerticalAlignment(SwingConstants.TOP);
-        totalPanel.add(lblTotal);
-        lblTotal.setForeground(new Color(0, 128, 128));
-        lblTotal.setFont(new Font("SansSerif", Font.BOLD, 16));
-
-        valorTotalLabel = new JLabel();
-        valorTotalLabel.setText("0");
-        valorTotalLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
-        totalPanel.add(valorTotalLabel);
-
-        JPanel numeroProdutosPanel = new JPanel();
-        numeroProdutosPanel.setBackground(new Color(255, 255, 255));
-        numeroProdutosPanel.setBounds(241, 27, 123, 23);
-        vendaPanel.add(numeroProdutosPanel);
-        numeroProdutosPanel.setLayout(new BoxLayout(numeroProdutosPanel, BoxLayout.X_AXIS));
-
-        lblProdutos = new JLabel("Produtos:");
-        numeroProdutosPanel.add(lblProdutos);
-        lblProdutos.setVerticalAlignment(SwingConstants.TOP);
-        lblProdutos.setForeground(new Color(0, 128, 128));
-        lblProdutos.setFont(new Font("SansSerif", Font.BOLD, 16));
-
-        numeroProdutosLabel = new JLabel();
-        numeroProdutosLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        numeroProdutosLabel.setText("0");
-        numeroProdutosLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
-        numeroProdutosPanel.add(numeroProdutosLabel);
         
         lblFormaPagamento = new JLabel("Pagmento:");
         lblFormaPagamento.setVerticalAlignment(SwingConstants.TOP);
@@ -244,7 +213,31 @@ public class IgVenda extends JDialog implements Utilitario {
         formaPagamentoComboBox.setMaximumRowCount(8);
         formaPagamentoComboBox.setBorder(null);
         formaPagamentoComboBox.setBackground(Color.WHITE);
+        
+        lblDataVenda = new JLabel("Data da Venda: ");
+        lblDataVenda.setBounds(243, 27, 121, 21);
+        vendaPanel.add(lblDataVenda);
+        lblDataVenda.setVerticalAlignment(SwingConstants.TOP);
+        lblDataVenda.setForeground(new Color(0, 128, 128));
+        lblDataVenda.setFont(new Font("SansSerif", Font.BOLD, 16));
+        
+        try {
+        	 MaskFormatter dateFormatter = new MaskFormatter("##/##/####");
+        	    dateFormatter.setPlaceholderCharacter('_');
+        	    dataVendaTextField = new JFormattedTextField(dateFormatter);
 
+        	    // Definir a data atual no formato dd/MM/yyyy
+        	    LocalDate hoje = LocalDate.now();
+        	    String dataAtual = hoje.format(DIA_MES_ANO_FORMATTER);
+        	    dataVendaTextField.setText(dataAtual);
+
+        	    dataVendaTextField.setColumns(10);
+        	    dataVendaTextField.setBounds(369, 27, 90, 22);
+        	    vendaPanel.add(dataVendaTextField);
+        } catch (java.text.ParseException e) {
+            e.printStackTrace();
+        }
+  
         clienteLabel = new JLabel("Cliente");
         clienteLabel.setLabelFor(clienteComboBox);
         clienteLabel.setDisplayedMnemonic(KeyEvent.VK_N);
@@ -273,6 +266,41 @@ public class IgVenda extends JDialog implements Utilitario {
         cancelarButton.setActionCommand("Cancel");
         cancelarButton.setBounds(1031, 436, 90, 28);
         panel.add(cancelarButton);
+        
+                JPanel totalPanel = new JPanel();
+                totalPanel.setBounds(948, 48, 152, 23);
+                panel.add(totalPanel);
+                totalPanel.setBackground(new Color(255, 255, 255));
+                totalPanel.setLayout(new BoxLayout(totalPanel, BoxLayout.X_AXIS));
+                
+                        JLabel lblTotal = new JLabel("Total:");
+                        lblTotal.setVerticalAlignment(SwingConstants.TOP);
+                        totalPanel.add(lblTotal);
+                        lblTotal.setForeground(new Color(0, 128, 128));
+                        lblTotal.setFont(new Font("SansSerif", Font.BOLD, 16));
+                        
+                                valorTotalLabel = new JLabel();
+                                valorTotalLabel.setText("0");
+                                valorTotalLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
+                                totalPanel.add(valorTotalLabel);
+                                
+                                        JPanel numeroProdutosPanel = new JPanel();
+                                        numeroProdutosPanel.setBounds(797, 48, 123, 23);
+                                        panel.add(numeroProdutosPanel);
+                                        numeroProdutosPanel.setBackground(new Color(255, 255, 255));
+                                        numeroProdutosPanel.setLayout(new BoxLayout(numeroProdutosPanel, BoxLayout.X_AXIS));
+                                        
+                                                lblProdutos = new JLabel("Produtos:");
+                                                numeroProdutosPanel.add(lblProdutos);
+                                                lblProdutos.setVerticalAlignment(SwingConstants.TOP);
+                                                lblProdutos.setForeground(new Color(0, 128, 128));
+                                                lblProdutos.setFont(new Font("SansSerif", Font.BOLD, 16));
+                                                
+                                                        numeroProdutosLabel = new JLabel();
+                                                        numeroProdutosLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                                                        numeroProdutosLabel.setText("0");
+                                                        numeroProdutosLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
+                                                        numeroProdutosPanel.add(numeroProdutosLabel);
         
         buscarTextField.addKeyListener(new KeyAdapter() {
             @Override
@@ -352,7 +380,7 @@ public class IgVenda extends JDialog implements Utilitario {
     }
 
     private void finalizarVenda(List<Cliente> clienteList, List<Venda> vendaList, DAO<Venda> vendaDao, DAO<Produto> produtoDAO, DAO<Item> itemDao) {
-    	try {
+        try {
             // Inicializa a venda
             Venda venda = new Venda();
             venda.setCliente(clienteList.stream()
@@ -363,17 +391,17 @@ public class IgVenda extends JDialog implements Utilitario {
 
             // Cria uma lista de itens
             List<Item> itemList = new ArrayList<>();
+            List<Produto> produtosAtualizados = new ArrayList<>();
             double valorTotalVenda = 0.0;
 
             for (int i = 0; i < vendasTableModel.getRowCount(); i++) {
                 // Encontra o produto existente
                 Produto produto = encontrarProdutoPorNome((String) vendasTableModel.getValueAt(i, 1));
-
                 int quantidade = Integer.parseInt(vendasTableModel.getValueAt(i, 2).toString());
 
-                // Atualiza a quantidade de estoque do produto
+                // Atualiza a quantidade de estoque do produto (em memória, não no banco de dados)
                 produto.subtraiQuantidadeEmEstoque(quantidade);
-                produtoDAO.altera(produto);
+                produtosAtualizados.add(produto);
 
                 // Cria o item da venda
                 Item item = new Item();
@@ -389,31 +417,41 @@ public class IgVenda extends JDialog implements Utilitario {
             }
 
             // Define os atributos restantes da venda
-            venda.setDataVenda(LocalDate.now());
+            venda.setDataVenda(LocalDate.parse(dataVendaTextField.getText(), DIA_MES_ANO_FORMATTER));
             venda.setValorVenda(valorTotalVenda);
             venda.setItemList(itemList);
 
-            // Persiste a venda
-            long idVenda = vendaDao.adicionaRetornaId(venda);
-            venda.setId(idVenda);
+            // Persiste a venda e os itens em um segundo bloco try
+            try {
+                // Persiste a venda
+                long idVenda = vendaDao.adicionaRetornaId(venda);
+                venda.setId(idVenda);
 
-            // Persiste os itens da venda
-            for (Item item : itemList) {
-                itemDao.adiciona(item);
+                // Persiste os itens da venda
+                for (Item item : itemList) {
+                    itemDao.adiciona(item);
+                }
+
+                // Atualiza a quantidade de estoque no banco de dados
+                for (Produto produto : produtosAtualizados) {
+                    produtoDAO.altera(produto);
+                }
+
+                // Adiciona a venda à lista de vendas
+                vendaList.add(venda);
+                // Fecha a janela de venda
+                this.dispose();
+                janelaPai.requestFocus();
+
+                JOptionPane.showMessageDialog(janelaPai, "Venda realizada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(janelaPai, "Erro ao finalizar venda: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             }
-
-            // Adiciona a venda à lista de vendas
-            vendaList.add(venda);
-            // Fecha a janela de venda
-            this.dispose();
-            janelaPai.requestFocus();
-            
-            
-            JOptionPane.showMessageDialog(janelaPai, "Venda realizada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(janelaPai, "Erro ao finalizar venda: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(janelaPai, "Erro ao processar dados da venda: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
+
 
 
 

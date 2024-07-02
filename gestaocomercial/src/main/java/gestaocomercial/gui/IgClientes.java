@@ -122,7 +122,7 @@ public class IgClientes extends JDialog {
         JButton voltarButton = new JButton("Voltar");
         voltarButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                dispose();
+            	dispose();
             }
         });
         voltarButton.setBackground(new Color(255, 255, 255));
