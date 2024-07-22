@@ -11,6 +11,8 @@ import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import javax.swing.BoxLayout;
@@ -40,6 +42,7 @@ import gestaocomercial.dominio.Cliente;
 import gestaocomercial.dominio.Item;
 import gestaocomercial.dominio.Produto;
 import gestaocomercial.dominio.Venda;
+import gestaocomercial.utilitarios.Email;
 import gestaocomercial.utilitarios.Utilitario;
 
 public class IgVenda extends JDialog implements Utilitario {
@@ -205,7 +208,7 @@ public class IgVenda extends JDialog implements Utilitario {
         lblFormaPagamento.setBounds(20, 27, 89, 21);
         vendaPanel.add(lblFormaPagamento);
         
-        String[] formasDePagamento = {"Dinheiro", "Cartão de Crédito", "Cartão de Débito", "Pix"};
+        String[] formasDePagamento = {"Dinheiro", "CC", "CD", "Pix"};
         formaPagamentoComboBox = new JComboBox<>(formasDePagamento);
         formaPagamentoComboBox.setBounds(106, 29, 113, 21);
         vendaPanel.add(formaPagamentoComboBox);
@@ -381,7 +384,6 @@ public class IgVenda extends JDialog implements Utilitario {
 
     private void finalizarVenda(List<Cliente> clienteList, List<Venda> vendaList, DAO<Venda> vendaDao, DAO<Produto> produtoDAO, DAO<Item> itemDao) {
         try {
-            // Inicializa a venda
             Venda venda = new Venda();
             venda.setCliente(clienteList.stream()
                     .filter(c -> c.getNomeCliente().equals((String) vendasTableModel.getValueAt(0, 0)))
@@ -389,21 +391,25 @@ public class IgVenda extends JDialog implements Utilitario {
                     .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado")));
             venda.setFormaPagamento((String) formaPagamentoComboBox.getSelectedItem());
 
-            // Cria uma lista de itens
             List<Item> itemList = new ArrayList<>();
             List<Produto> produtosAtualizados = new ArrayList<>();
             double valorTotalVenda = 0.0;
 
             for (int i = 0; i < vendasTableModel.getRowCount(); i++) {
-                // Encontra o produto existente
                 Produto produto = encontrarProdutoPorNome((String) vendasTableModel.getValueAt(i, 1));
                 int quantidade = Integer.parseInt(vendasTableModel.getValueAt(i, 2).toString());
 
-                // Atualiza a quantidade de estoque do produto (em memória, não no banco de dados)
                 produto.subtraiQuantidadeEmEstoque(quantidade);
                 produtosAtualizados.add(produto);
+                
+                if(produto.getQuantidadeEstoque() <= 6) {
+                	ExecutorService executor = Executors.newSingleThreadExecutor();
+                    executor.submit(() -> {
+                    	Email.enviarEmail("igoraugusto36s@gmail.com", String.format("O produto %s, está acabando", produto.getNomeProduto())
+                            	, Email.montarMensagemEmail(produto));
+                    });
+                }
 
-                // Cria o item da venda
                 Item item = new Item();
                 item.setProduto(produto);
                 item.setQuantidade(quantidade);

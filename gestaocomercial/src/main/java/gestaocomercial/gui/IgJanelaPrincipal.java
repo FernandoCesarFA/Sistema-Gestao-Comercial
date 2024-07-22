@@ -69,11 +69,14 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 	private JPanel tabelaPanel;
 	private JPanel graficoPanel;
 	private JComboBox<String> comboBoxFiltrar;
+	private DAO<Venda> vendaDAO;
 
 	public IgJanelaPrincipal(DAO<Cliente> clienteDAO, DAO<Produto> produtoDAO, DAO<Venda> vendaDAO, DAO<Item> itemDAO) {
 		clienteList = clienteDAO.listaTodos();
 		produtoList = produtoDAO.listaTodos();
 		vendaList = vendaDAO.listaTodos();
+		
+		this.vendaDAO = vendaDAO;
 		
 		String[] meses = Meses.getAbreviacoes();
 
@@ -543,9 +546,9 @@ public class IgJanelaPrincipal extends JFrame implements Utilitario {
 		atualizarEstadoBotoesVendaERelatorio();
 		atualizarLabels();
 		
-		List<Venda> vendaFiltradaList = vendaList;
+		List<Venda> vendaFiltradaList = vendaDAO.listaTodos();
 		
-		//vendaFiltradaList.forEach((c) -> System.out.println(c.getCliente().getNomeCliente()));
+		vendaFiltradaList.forEach((c) -> System.out.println(c.getCliente().getNomeCliente()));
 		
 		System.out.println();
 		
